@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    poweredByHeader: false, // 보안: X-Powered-By 제거
+    reactStrictMode: true,
 };
 
 export default nextConfig;
