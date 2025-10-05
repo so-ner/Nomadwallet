@@ -34,6 +34,19 @@ export default function SignInPage() {
     }
   }
 
+  // Google 로그인 처리
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true)
+      await signIn('google', { callbackUrl: '/' }) // NextAuth가 알아서 Google OAuth 페이지로 이동
+    } catch (err) {
+      console.error('Google login error:', err)
+      setError('Google 로그인 중 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-sm border rounded-xl p-6 shadow-sm bg-white">
@@ -61,6 +74,27 @@ export default function SignInPage() {
             />
           </label>
           <SubmitButton name={loading ? '로그인 중...' : '로그인'} disabled={loading} />
+          {/* Google 로그인 버튼 */}
+          <div className="flex items-center my-4">
+            <div className="flex-grow h-px bg-gray-200" />
+            <span className="text-xs text-gray-400 px-2">또는</span>
+            <div className="flex-grow h-px bg-gray-200" />
+          </div>
+
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 hover:bg-gray-50 transition"
+          >
+            <img
+              src="https://developers.google.com/identity/images/g-logo.png"
+              alt="Google"
+              className="w-5 h-5"
+            />
+            <span className="text-sm font-medium text-gray-700">
+            Google로 로그인
+          </span>
+          </button>
         </form>
       </div>
     </div>
