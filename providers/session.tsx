@@ -1,14 +1,14 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
-import type { Session } from 'next-auth'
+import {createContext, useContext, useEffect, useState} from 'react'
+import {usePathname} from 'next/navigation'
+import {signOut} from 'next-auth/react'
+import type {Session} from 'next-auth'
 
 // 전역 세션 Context
 const SessionContext = createContext<Session | null>(null)
 
-export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
+export const SessionProvider = ({children}: { children: React.ReactNode }) => {
   const pathname = usePathname()
   const [session, setSession] = useState<Session | null>(null)
 
@@ -22,16 +22,16 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   // 로그아웃 함수
   const handleLogout = async () => {
     try {
-      await signOut({ redirect: false }) // 세션 쿠키 제거
+      await signOut({redirect: false}) // 세션 쿠키 제거
       setSession(null)
-      window.location.href = '/signin' // 로그아웃 후 로그인 페이지로 이동
+      window.location.href = '/' // 로그아웃 후 로그인 페이지로 이동
     } catch (error) {
       console.error('로그아웃 실패:', error)
     }
   }
 
   return (
-    <SessionContext.Provider value={{ ...session, handleLogout } as any}>
+    <SessionContext.Provider value={{...session, handleLogout} as any}>
       {children}
     </SessionContext.Provider>
   )
