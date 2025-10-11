@@ -65,14 +65,14 @@ export const authOptions = {
           }
 
           console.log('회원가입 완료')
-          return {id: newUser.id, email: newUser.email};
+          return {id: newUser.user_id, email: newUser.email};
         }
 
         // 로그인 로직
         if (existingUser.password !== credentials.password) throw new Error("비밀번호 불일치");
 
         console.log('로그인 완료')
-        return {id: existingUser.id, email: existingUser.email};
+        return {id: existingUser.user_id, email: existingUser.email};
       },
     }),
   ],
@@ -90,7 +90,7 @@ export const authOptions = {
 
       if (account?.provider === "google") {
         try {
-          console.log('✅ Google OAuth 로그인 성공 (SupabaseAdapter가 자동 처리)')
+          console.log('Google OAuth 로그인 성공')
         } catch (e) {
           if (e instanceof Error) {
             return `/error?message=${encodeURIComponent(e.message)}`
@@ -106,11 +106,20 @@ export const authOptions = {
       return true; // 로그인 허용
     },
     async jwt({token, user}: { token: JWT; user?: any }) {
-      if (user) token.id = user.id
+      if (user) {
+        token.id = user.id
+        token.email = user.email
+        token.name = user.name ?? null
+      }
       return token
     },
     async session({session, token}: { session: Session; token: JWT }) {
-      if (session.user) session.user.id = token.id as string
+      session.user = {
+        ...session.user,
+        id: token.id as string,
+        email: token.email as string,
+        name: token.name as string | null,
+      }
       return session
     },
   },
