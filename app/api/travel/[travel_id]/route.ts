@@ -7,8 +7,7 @@ import {withAuth} from "@/lib/auth";
 // 조회
 export const GET = withAuth(async (user, req, contextPromise) => {
   const { params } = await contextPromise;
-  // TODO param properties 확인 필요
-  const travelId = params.travel_id;
+  const travelId = Number(params.travel_id);
 
   // params의 travel_id로 여행예산 조회
   const { data, error } = await supabase
@@ -24,7 +23,7 @@ export const GET = withAuth(async (user, req, contextPromise) => {
 // 수정
 export const PATCH = withAuth(async (user, req, contextPromise) => {
   const { params } = await contextPromise;
-  const travelId = params.travel_id;
+  const travelId = Number(params.travel_id);
 
   const body: { travel_title: string; total_budget: number } = await req.json()
   const { data, error } = await supabaseAdmin
