@@ -21,19 +21,18 @@ export const GET = withAuth(async (user, req, contextPromise) => {
   return NextResponse.json({ data })
 })
 
-// 수정(PATCH, admin으로 진행할 것)
+// 수정
 export const PATCH = withAuth(async (user, req, contextPromise) => {
   const { params } = await contextPromise;
   const travelId = params.travel_id;
 
-  // params의 travel_title로 여행예산 수정
   const body: { travel_title: string; total_budget: number } = await req.json()
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('travel')
     .update({'travel_title' : body.travel_title, 'total_budget' : body.total_budget} )
     .eq('travel_id', travelId)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 402 })
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ data })
 })
 
