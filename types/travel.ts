@@ -5,6 +5,13 @@
  */
 export type WarnType = 'amount' | 'percent';
 
+// 국제 통화 코드 (DB의 currency 정수 코드와 매핑)
+export enum CurrencyCode {
+  KRW = 1,
+  JPY = 2,
+  USD = 3,
+}
+
 export interface Travel {
   travel_id: number;
   travel_title: string;
@@ -27,6 +34,13 @@ export interface GetTravelsResponse {
 export interface GetTravelResponse extends Travel {
 }
 
+// API 응답 스키마 (서버 응답 형태를 그대로 반영)
+export interface ApiGetTravelsResponse { travels: Travel[] }
+export interface ApiCreateTravelResponse { travel: Travel }
+export interface ApiGetTravelResponse { data: GetTravelResponse | null }
+export interface ApiUpdateTravelResponse { data: unknown }
+export interface ApiDeleteTravelResponse { data: unknown }
+
 export interface PostTravelRequest {
   travel_title: string;
   start_date: string;
@@ -34,7 +48,7 @@ export interface PostTravelRequest {
   total_budget: number;
   warn_type?: WarnType;
   warn_detail_cond?: string;
-  currency: number;
+  currency: number; // CurrencyCode
 }
 
 export interface PutTravelRequest {
@@ -44,5 +58,5 @@ export interface PutTravelRequest {
   total_budget: number;
   warn_type?: WarnType;
   warn_detail_cond?: string;
-  currency: number;
+  currency: number; // CurrencyCode
 }
