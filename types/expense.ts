@@ -1,25 +1,23 @@
-import { CurrencyCode } from './travel';
+import {Database} from "@/types/database.types";
 
-export enum ExpenseCategory {
-  TRANSPORT = '교통',
-  ACCOMMODATION = '숙박',
-  FOOD = '식사',
-  SHOPPING = '쇼핑',
-  CAFE = '카페/간식',
-  ENTERTAINMENT = '문화/여가',
-  ETC = '기타',
-}
+// Supabase에서 가져온 테이블 타입
+export type Expense = Database['public']['Tables']['expense']['Row']
+export type InsertExpense = Database['public']['Tables']['expense']['Insert']
+export type UpdateExpense = Database['public']['Tables']['expense']['Update']
 
-export interface Expense {
-  expense_id: number;
-  user_id: number;
-  travel_id: number | null;
-  amount: number;
-  currency: number; // CurrencyCode
-  exchange_rate: number | null;
-  category: string; // ExpenseCategory
-  expense_date: string; // YYYY-MM-DD
-}
+// Supabase Enums
+export type CategoryMajor = Database['public']['Enums']['category_major']
+// React Select에서 사용할 옵션 형식
+export const categoryOptions: { label: string; value: CategoryMajor }[] = [
+  { label: '주거비', value: 'HOUSING' },
+  { label: '고정비', value: 'FIXED' },
+  { label: '저축/투자비', value: 'SAVINGS_INVESTMENT' },
+  { label: '교통비', value: 'TRANSPORTATION' },
+  { label: '식사비', value: 'FOOD' },
+  { label: '생활/쇼핑', value: 'LIVING_SHOPPING' },
+  { label: '문화생활', value: 'ENTERTAINMENT' },
+  { label: '기타', value: 'OTHERS' },
+]
 
 export interface DayExpenseSummary {
   date: string; // YYYY-MM-DD
@@ -41,24 +39,25 @@ export interface MonthlyExpenseSummary {
 export interface GetExpensesRequest {
   year: number;
   month: number; // 1-12 (1=1월, 12=12월)
+  category_major?: CategoryMajor
 }
 
-export interface PostExpenseRequest {
-  travel_id?: number | null;
-  amount: number;
-  currency: number; // CurrencyCode
-  exchange_rate?: number | null;
-  category: string; // ExpenseCategory
-  expense_date: string; // YYYY-MM-DD
-}
-
-export interface PutExpenseRequest {
-  amount: number;
-  currency: number; // CurrencyCode
-  exchange_rate?: number | null;
-  category: string; // ExpenseCategory
-  expense_date: string; // YYYY-MM-DD
-}
+// export interface PostExpenseRequest {
+//   travel_id?: number | null;
+//   amount: number;
+//   currency: number; // CurrencyCode
+//   exchange_rate?: number | null;
+//   category: string; // ExpenseCategory
+//   expense_date: string; // YYYY-MM-DD
+// }
+//
+// export interface PutExpenseRequest {
+//   amount: number;
+//   currency: number; // CurrencyCode
+//   exchange_rate?: number | null;
+//   category: string; // ExpenseCategory
+//   expense_date: string; // YYYY-MM-DD
+// }
 
 // =========================
 // API Response Types
