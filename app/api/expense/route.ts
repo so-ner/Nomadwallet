@@ -42,8 +42,6 @@ export const GET = withAuth(async (user, req) => {
  */
 export const POST = withAuth(async (user, req): Promise<Response> => {
   const body: InsertExpense = await req.json()
-  console.log(body);
-  console.log(user);
 
   const { data, error } = await supabaseAdmin
       .from('expense')

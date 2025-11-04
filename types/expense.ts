@@ -7,6 +7,8 @@ export type UpdateExpense = Database['public']['Tables']['expense']['Update']
 
 // Supabase Enums
 export type CategoryMajor = Database['public']['Enums']['category_major']
+export type TransactionType = Database['public']['Enums']['transaction_type']
+ 
 // React Select에서 사용할 옵션 형식
 export const categoryOptions: { label: string; value: CategoryMajor }[] = [
   { label: '주거비', value: 'HOUSING' },
@@ -17,6 +19,10 @@ export const categoryOptions: { label: string; value: CategoryMajor }[] = [
   { label: '생활/쇼핑', value: 'LIVING_SHOPPING' },
   { label: '문화생활', value: 'ENTERTAINMENT' },
   { label: '기타', value: 'OTHERS' },
+]
+export const transactionOptions: { label: string; value: TransactionType }[] = [
+  { label: '지출', value: 'EXPENSE' },
+  { label: '수입', value: 'INCOME' }
 ]
 
 export interface DayExpenseSummary {
