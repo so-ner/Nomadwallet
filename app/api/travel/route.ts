@@ -4,7 +4,7 @@ import {withAuth} from "@/lib/auth";
 import {supabaseAdmin} from "@/lib/supabaseAdmin";
 
 // 여행 예산 목록 조회
-export const GET = withAuth(async (user, _req) => {
+export const GET = withAuth(async (user, req) => {
   // 세션의 user_id로 travel 존재 여부 확인
   const { data: travels, error } = await supabase
     .from('travel')
