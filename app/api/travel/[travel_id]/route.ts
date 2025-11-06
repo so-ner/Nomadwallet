@@ -2,6 +2,9 @@ import {supabaseAdmin} from "@/lib/supabaseAdmin"
 import {supabase} from "@/lib/supabaseClient"
 import { NextResponse } from 'next/server'
 import {withAuth} from "@/lib/auth";
+import type { UpdateExpense } from '@/types/expense';
+import { UpdateTravel } from '@/types/travel';
+
 
 // 여행 예산 상세 API (Travel Detail)
 // 조회
@@ -24,13 +27,16 @@ export const GET = withAuth(async (user, req, contextPromise) => {
 export const PATCH = withAuth(async (user, req, contextPromise) => {
   const { params } = await contextPromise;
   const travelId = Number(params.travel_id);
+  const body: UpdateTravel = await req.json()
 
-  // todo 인터페이스 생성 전 임시 타입 지정
-  const body: { travel_title: string; total_budget: number } = await req.json()
+
   const { data, error } = await supabaseAdmin
-    .from('travel')
-    .update({'travel_title' : body.travel_title, 'total_budget' : body.total_budget})
-    .eq('travel_id', travelId)
+    .from('travel_id')
+    .update({ ...body, updated_at: new Date().toISOString()})
+    .eq('travelId', travelId)
+    .eq('user_id', user.id)
+    .select('*')
+    .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ data })
