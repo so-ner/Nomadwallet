@@ -2,8 +2,12 @@ import {supabase} from "@/lib/supabaseClient"
 import { NextResponse } from 'next/server'
 import {withAuth} from "@/lib/auth";
 import {supabaseAdmin} from "@/lib/supabaseAdmin";
+import {InsertTravel} from "@/types/travel";
 
-// 여행 예산 목록 조회
+/**
+ * [GET] /api/travel
+ * 여행 예산 목록 조회
+ */
 export const GET = withAuth(async (user, req) => {
   // 세션의 user_id로 travel 존재 여부 확인
   const { data: travels, error } = await supabase
@@ -30,38 +34,19 @@ export const GET = withAuth(async (user, req) => {
   return NextResponse.json({ travels: result })
 })
 
-// 여행 예산 생성
+/**
+ * [POST] /api/travel
+ * 여행 예산 생성
+ */
 export const POST = withAuth(async (user, req) => {
-  // todo 인터페이스 생성 전 임시 타입 지정
-  const body: {
-    travel_title: string
-    start_date: string
-    end_date: string
-    total_budget: number
-    warn_type?: 'amount' | 'percent'
-    warn_detail_cond?: string
-    currency?: number
-  } = await req.json()
+  const body: InsertTravel = await req.json()
 
   const { data, error } = await supabaseAdmin
     .from('travel')
-    .insert([
-      {
-        user_id: user.id,
-        travel_title: body.travel_title,
-        start_date: body.start_date,
-        end_date: body.end_date,
-        total_budget: body.total_budget,
-        warn_type: body.warn_type ?? 'percent',
-        warn_detail_cond: body.warn_detail_cond ?? '80',
-        currency: body.currency ?? 1,
-      },
-    ])
-    .select('*')
-    .single()
+    .insert([{ ...body, user_id: user.id }])
+    .select();
 
   if (error) {
-    console.error('여행 생성 실패:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
