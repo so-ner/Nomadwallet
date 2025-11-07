@@ -1,10 +1,10 @@
+import type {Account, Profile, Session, User} from "next-auth"
 import NextAuth from "next-auth"
 import {SupabaseAdapter} from "@auth/supabase-adapter"
 import {supabaseAdmin} from "@/lib/supabaseAdmin"
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials"
 import type {JWT} from "next-auth/jwt"
-import type {Account, Profile, User, Session} from "next-auth"
 
 export const authOptions = {
   adapter: SupabaseAdapter({
