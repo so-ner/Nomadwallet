@@ -2,51 +2,62 @@ import {supabaseAdmin} from "@/lib/supabaseAdmin"
 import {supabase} from "@/lib/supabaseClient"
 import { NextResponse } from 'next/server'
 import {withAuth} from "@/lib/auth";
+import {ApiDeleteTravelResponse, UpdateTravel} from "@/types/travel";
 
-// 여행 예산 상세 API (Travel Detail)
-// 조회
+/**
+ * [GET] /api/travel/:travel_id
+ * 여행 예산 상세 조회
+ */
 export const GET = withAuth(async (user, req, contextPromise) => {
-  const { params } = await contextPromise;
-  const travelId = Number(params.travel_id);
+  const context = await contextPromise
+  const travelId = context.params.travel_id
 
   // params의 travel_id로 여행예산 조회
   const { data, error } = await supabase
     .from('travel')
     .select('*')
     .eq('travel_id', travelId)
-    .maybeSingle()
+    .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ data })
 })
 
-// 수정
+/**
+ * [PATCH] /api/travel/:travel_id
+ * 여행 예산 수정
+ */
 export const PATCH = withAuth(async (user, req, contextPromise) => {
-  const { params } = await contextPromise;
-  const travelId = Number(params.travel_id);
+  const context = await contextPromise
+  const travelId = context.params.travel_id
 
-  // todo 인터페이스 생성 전 임시 타입 지정
-  const body: { travel_title: string; total_budget: number } = await req.json()
+  const body: UpdateTravel = await req.json()
+
   const { data, error } = await supabaseAdmin
     .from('travel')
-    .update({'travel_title' : body.travel_title, 'total_budget' : body.total_budget})
+    .update({ ...body, updated_at: new Date().toISOString()})
     .eq('travel_id', travelId)
+    .eq('user_id', user.id)
+    .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ data })
 })
 
-// 삭제
+/**
+ * [DELETE] /api/travel/:travel_id
+ * 여행 예산 삭제
+ */
 export const DELETE = withAuth(async (user, req, contextPromise) => {
-  const { params } = await contextPromise;
-  const travelId = Number(params.travel_id);
+  const context = await contextPromise
+  const travelId = context.params.travel_id
 
-  const { data, error } = await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from('travel')
     .delete()
     .eq('user_id', user.id)
     .eq('travel_id', travelId)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return NextResponse.json({ data })
+  const response: ApiDeleteTravelResponse = { success: true }
+  return NextResponse.json(response, { status: 200 })
 })
