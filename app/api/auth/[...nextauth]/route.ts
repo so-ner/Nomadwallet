@@ -1,10 +1,40 @@
+import type {Account, Session, User} from "next-auth"
 import NextAuth from "next-auth"
 import {SupabaseAdapter} from "@auth/supabase-adapter"
 import {supabaseAdmin} from "@/lib/supabaseAdmin"
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials"
 import type {JWT} from "next-auth/jwt"
-import type {Account, Profile, User, Session} from "next-auth"
+import {supabase} from "@/lib/supabaseClient";
+
+// sns 로그인 시 user_map을 통한 public user 정보 연게
+async function getPublicUserByAuthId(authUserId: string) {
+  const {data, error} = await supabase
+    .from('user_map')
+    .select(`
+      public_user_id,
+      public_user:public_user_id (user_id, user_name, email, is_onboarded)
+    `)
+    .eq('auth_user_id', authUserId)
+    .single()
+
+  if (error) {
+    console.error('user_map 조회 실패:', error)
+    return null
+  }
+
+  const user =
+    Array.isArray(data.public_user) && data.public_user.length > 0
+      ? data.public_user[0]
+      : data.public_user
+
+  return user as {
+    user_id: number
+    user_name: string
+    email: string
+    is_onboarded: boolean
+  } | null
+}
 
 export const authOptions = {
   adapter: SupabaseAdapter({
@@ -80,46 +110,44 @@ export const authOptions = {
   session: {strategy: "jwt" as const},
 
   callbacks: {
-    async signIn({user, account, profile,}: {
-      user: User
-      account: Account | null
-      profile?: Profile
-    }) {
-      console.log("SignIn 콜백 진입");
-      console.log("Provider:", account?.provider)
+    async signIn({user, account}: { user: User; account: Account | null }) {
+      console.log("signIn 콜백 진입:", account?.provider)
 
       if (account?.provider === "google") {
-        try {
-          console.log('Google OAuth 로그인 성공')
-        } catch (e) {
-          if (e instanceof Error) {
-            return `/error?message=${encodeURIComponent(e.message)}`
-          }
-        }
+        console.log("Google OAuth 로그인 성공:", user.email)
       }
 
       if (account?.provider === "credentials") {
-        console.log("Credentials 로그인 시도");
-        // 이미 authorize()에서 검증 완료됨
+        console.log("Credentials 로그인 시도:", user.email)
       }
 
-      return true; // 로그인 허용
+      return true
     },
-    async jwt({token, user}: { token: JWT; user?: any }) {
+    async jwt({token, user, account}: { token: JWT; user?: any; account?: Account | null }) {
       if (user) {
         token.id = user.id
         token.email = user.email
         token.name = user.name ?? null
+        // sns 로그인 시 public.users 정보 연계해오기
+        if (account?.provider && account?.provider !== "credentials") {
+          const publicUser = await getPublicUserByAuthId(user.id)
+          if (publicUser) {
+            token.public_user = publicUser
+            // console.log("토큰 발급 완료:", publicUser);
+          }
+        }
       }
       return token
     },
     async session({session, token}: { session: Session; token: JWT }) {
       session.user = {
         ...session.user,
-        id: token.id as string,
+        id: token.public_user ? String(token.public_user.user_id) : (token.id as string),
         email: token.email as string,
         name: token.name as string | null,
+        is_onboarded: token.public_user?.is_onboarded ?? false,
       }
+      // console.log("세션 세팅 완료:", session.user);
       return session
     },
   },
