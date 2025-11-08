@@ -56,7 +56,7 @@ export const POST = withAuth(async (user, req): Promise<Response> => {
     consent_channels: c.channels ?? null,
   }))
 
-  const {error: upsertErr} = await supabase.from('user_terms').upsert(rows)
+  const {error: upsertErr} = await supabase.from('user_terms').upsert(rows, {onConflict: 'user_id'})
   if (upsertErr) return NextResponse.json({error: upsertErr.message}, {status: 500})
 
   return NextResponse.json({ok: true})
