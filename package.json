@@ -13,6 +13,7 @@
     "@auth/supabase-adapter": "^1.10.0",
     "@next/env": "^15.5.3",
     "@supabase/supabase-js": "^2.57.4",
+    "bcryptjs": "^3.0.3",
     "next": "15.5.3",
     "next-auth": "^4.24.11",
     "path-to-regexp": "^8.3.0",

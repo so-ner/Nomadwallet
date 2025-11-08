@@ -50,6 +50,9 @@ npm install @supabase/supabase-js
 # 입력값 검증
 npm install zod
 
+# 암호화 관련
+npm install bcryptjs
+
 # .env 사용
 npm install @next/env
 ```

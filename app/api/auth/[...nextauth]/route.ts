@@ -6,6 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials"
 import type {JWT} from "next-auth/jwt"
 import {supabase} from "@/lib/supabaseClient";
+import {hashPassword, verifyPassword} from "@/lib/password";
 
 // sns 로그인 시 user_map을 통한 public user 정보 연게
 async function getPublicUserByAuthId(authUserId: string) {
@@ -65,7 +66,8 @@ export const authOptions = {
           throw new Error("이메일 혹은 비밀번호가 비어있습니다.");
 
         console.log('auth 인증 진입 완료')
-        console.log(credentials)
+        // console.log(credentials)
+
         // 기존 유저 조회
         const {data: existingUser} = await supabaseAdmin
           .from("users")
@@ -73,15 +75,17 @@ export const authOptions = {
           .eq("email", credentials.email)
           .maybeSingle();
 
-        console.log(existingUser)
+        // console.log(existingUser)
+
         // 회원가입 로직
         if (!existingUser && credentials.name !== null) {
+          const hashed = await hashPassword(credentials.password);
           const {data: newUser, error: insertError} = await supabaseAdmin
             .from("users")
             .insert([
               {
                 email: credentials.email,
-                password: credentials.password, // todo 현재 단순 저장 -> hash 처리
+                password: hashed,
                 user_name: credentials.name,
                 phone_number: credentials.phone ?? null,
               },
@@ -94,20 +98,31 @@ export const authOptions = {
             throw new Error("회원가입 실패.");
           }
 
-          console.log('회원가입 완료')
           return {id: newUser.user_id, email: newUser.email};
         }
 
         // 로그인 로직
-        if (existingUser.password !== credentials.password) throw new Error("비밀번호 불일치");
+        if (!existingUser)
+          throw new Error('해당 이메일의 계정이 존재하지 않습니다.');
 
-        console.log('로그인 완료')
+        const isValid = await verifyPassword(
+          credentials.password,
+          existingUser.password
+        );
+        if (!isValid) throw new Error('비밀번호 불일치');
+
         return {id: existingUser.user_id, email: existingUser.email};
       },
     }),
   ],
 
-  session: {strategy: "jwt" as const},
+  session: {
+    strategy: "jwt" as const,
+    maxAge: 60 * 60 * 24 * 7, // 7일
+  },
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET, // 세션 암복호화용
+  },
 
   callbacks: {
     async signIn({user, account}: { user: User; account: Account | null }) {
@@ -131,10 +146,7 @@ export const authOptions = {
         // sns 로그인 시 public.users 정보 연계해오기
         if (account?.provider && account?.provider !== "credentials") {
           const publicUser = await getPublicUserByAuthId(user.id)
-          if (publicUser) {
-            token.public_user = publicUser
-            // console.log("토큰 발급 완료:", publicUser);
-          }
+          if (publicUser) token.public_user = publicUser
         }
       }
       return token
@@ -147,10 +159,11 @@ export const authOptions = {
         name: token.name as string | null,
         is_onboarded: token.public_user?.is_onboarded ?? false,
       }
-      // console.log("세션 세팅 완료:", session.user);
       return session
     },
   },
+
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
