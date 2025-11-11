@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import {withAuth} from "@/lib/auth";
 import {supabaseAdmin} from "@/lib/supabaseAdmin";
 import {InsertTravel} from "@/types/travel";
+import {TransactionType} from "@/types/expense";
 
 /**
  * [GET] /api/travel
@@ -19,17 +20,37 @@ export const GET = withAuth(async (user, req) => {
       end_date,
       total_budget,
       currency,
-      expense(amount)
+      expense(amount, category, memo, type)
     `)
     .eq('user_id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // join된 expense(지출) 배열에서 합계 계산
+  // TODO 인터페이스 지정 후 타입 비교 수정
   const result = travels.map((t) => {
-    const total_spent = (t.expense || []).reduce((sum, e) => sum + Number(e.amount), 0)
-    return { ...t, total_spent }
-  })
+    const expenses = t.expense || [];
+
+    const total_income = expenses
+      .filter((e) => e.type === 'INCOME')
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+
+    const total_expense = expenses
+      .filter((e) => e.type === 'EXPENSE')
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+
+    // 실제 사용 금액 = 지출 - 수입
+    const total_spent = total_expense - total_income;
+    const remaining_budget = t.total_budget - total_expense;
+
+    return {
+      ...t,
+      total_income,
+      total_expense,
+      total_spent,
+      remaining_budget
+    };
+  });
 
   return NextResponse.json({ travels: result })
 })
