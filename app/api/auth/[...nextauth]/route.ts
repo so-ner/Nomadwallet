@@ -1,4 +1,4 @@
-import type {Account, Session, User} from "next-auth"
+import type {Account, Profile, Session, User} from "next-auth"
 import NextAuth from "next-auth"
 import {SupabaseAdapter} from "@auth/supabase-adapter"
 import {supabaseAdmin} from "@/lib/supabaseAdmin"

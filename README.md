@@ -59,6 +59,12 @@ npm i -D @types/nodemailer
 
 # .env 사용
 npm install @next/env
+
+# 이미지 저장 및 조회를 위한 r2 호환
+npm install @aws-sdk/client-s3
+
+# Presigned URL을 만들어주는 유틸리티
+npm install @aws-sdk/s3-request-presigner
 ```
 
 ## 2. 개발 서버 실행
