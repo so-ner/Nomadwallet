@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   const {error} = await supabaseAdmin
     .from('users')
-    .update({profile_image_url: imageUrl})
+    .update({profile_image_url: imageUrl, updated_at: new Date().toISOString()})
     .eq('user_id', user.id);
 
   if (error) {

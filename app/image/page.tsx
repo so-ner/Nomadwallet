@@ -19,22 +19,22 @@ async function changeProfile({
     // 기본 → 업로드
     if (!file) throw new Error('파일이 필요합니다.');
 
-    const presigned = await fetch('/api/storage/upload', {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // R2 업로드
+    const res = await fetch('/api/storage/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ contentType: file.type }),
+      body: formData
     }).then((r) => r.json());
 
-    await fetch(presigned.url, { method: 'PUT', body: file });
-
+    // Supabase에 url 저장
     const response = await fetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key: presigned.key, isBasic: false }),
+      body: JSON.stringify({ key: res.key, isBasic: false }),
     });
     return response.json();
   } else if (from === 'upload' && to === 'basic') {
@@ -63,6 +63,9 @@ async function changeProfile({
     if (!file) throw new Error('파일이 필요합니다.');
     if (!currentKey) throw new Error('현재 키가 필요합니다.');
 
+    const formData = new FormData();
+    formData.append('file', file);
+
     await fetch('/api/storage/delete', {
       method: 'DELETE',
       headers: {
@@ -71,22 +74,19 @@ async function changeProfile({
       body: JSON.stringify({ key: currentKey }),
     });
 
-    const presigned = await fetch('/api/storage/upload', {
+    // R2 업로드
+    const res = await fetch('/api/storage/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ contentType: file.type }),
+      body: formData
     }).then((r) => r.json());
 
-    await fetch(presigned.url, { method: 'PUT', body: file });
-
+    // Supabase에 url 업데이트
     const response = await fetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key: presigned.key, isBasic: false }),
+      body: JSON.stringify({ key: res.key, isBasic: false }),
     });
     return response.json();
   }

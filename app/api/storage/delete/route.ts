@@ -10,18 +10,20 @@ export async function DELETE(req: Request) {
   const user = await requireAuth();
   if ('status' in user) return user;
 
-  const { key } = await req.json();
-  if (!key) return new Response('Missing key', { status: 400 });
+  let {key} = await req.json();
+  if (!key) return new Response('Missing key', {status: 400});
+  if (key.includes("?v=")) key = key.split("?v=")[0]; // 캐시 무효화용 timestamp 제거
 
   try {
-    const command = new DeleteObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
-      Key: key,
-    });
-    await r2Client.send(command);
-    return Response.json({ success: true });
+    await r2Client.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Key: key,
+      })
+    );
+    return Response.json({success: true});
   } catch (err) {
     console.error('R2 삭제 실패:', err);
-    return new Response('Delete failed', { status: 500 });
+    return new Response('Delete failed', {status: 500});
   }
 }
