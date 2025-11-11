@@ -14,10 +14,11 @@ import {
  * 지출 상세 조회
  */
 export async function GET(
+  req: Request,
   context: { params: Promise<{ expense_id: number }> }
 ) {
-  const expenseId = (await context.params).expense_id;
-  if (!expenseId) {
+  const { expense_id } = await context.params;
+  if (!expense_id) {
     return NextResponse.json({error: 'Invalid expense_id'}, {status: 400})
   }
 
@@ -27,7 +28,7 @@ export async function GET(
   const {data, error} = await supabase
     .from('expense')
     .select('*')
-    .eq('expense_id', expenseId)
+    .eq('expense_id', expense_id)
     .eq('user_id', user.id)
     .single();
 
@@ -75,6 +76,7 @@ export async function PUT(
  * 지출 삭제
  */
 export async function DELETE(
+  req: Request,
   context: { params: Promise<{ expense_id: number }> }
 ) {
   const expenseId = (await context.params).expense_id;

@@ -16,6 +16,7 @@
     "@next/env": "^15.5.3",
     "@supabase/supabase-js": "^2.57.4",
     "bcryptjs": "^3.0.3",
+    "dayjs": "^1.11.19",
     "next": "15.5.3",
     "next-auth": "^4.24.11",
     "nodemailer": "^7.0.10",

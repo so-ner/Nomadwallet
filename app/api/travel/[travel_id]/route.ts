@@ -9,10 +9,11 @@ import {ApiDeleteTravelResponse, ApiGetTravelResponse, ApiUpdateTravelResponse, 
  * 여행 예산 상세 조회
  */
 export async function GET(
+  req: Request,
   context: { params: Promise<{ travel_id: number }> }
 ) {
-  const travelId = (await context.params).travel_id;
-  if (!travelId) {
+  const { travel_id } = await context.params;
+  if (!travel_id) {
     return NextResponse.json({error: 'Invalid travel_id'}, {status: 400})
   }
 
@@ -23,7 +24,7 @@ export async function GET(
   const {data, error} = await supabase
     .from('travel')
     .select('*')
-    .eq('travel_id', travelId)
+    .eq('travel_id', travel_id)
     .single();
 
   if (error) return NextResponse.json({error: error.message}, {status: 500})
@@ -69,6 +70,7 @@ export async function PATCH(
  * 여행 예산 삭제
  */
 export async function DELETE(
+  req: Request,
   context: { params: Promise<{ travel_id: number }> }
 ) {
   const travelId = (await context.params).travel_id;

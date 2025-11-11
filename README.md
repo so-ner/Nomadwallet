@@ -57,6 +57,9 @@ npm install bcryptjs
 npm i nodemailer
 npm i -D @types/nodemailer
 
+# 통계를 위한 날짜 라이브러리
+npm install dayjs
+
 # .env 사용
 npm install @next/env
 
