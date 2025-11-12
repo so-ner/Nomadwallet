@@ -2,6 +2,10 @@ import {NextResponse} from 'next/server'
 import {withAuth} from "@/lib/auth";
 import {supabaseAdmin} from "@/lib/supabaseAdmin";
 
+/**
+ * [DELETE] /api/user/withdraw
+ * 회원탈퇴
+ */
 export const DELETE = withAuth(async (user, req): Promise<Response> => {
   try {
     // 내부 트랜잭션 함수 호출

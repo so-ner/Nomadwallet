@@ -88,3 +88,27 @@ Supabase DB와 연동 가능 (공식 문서의 Auth.js | Supabase 가이드라�
 
 레포지토리 내 .env.example 파일 참고해
 로컬 개발 환경에서는 .env.local 파일을 생성하여 환경 변수 추가
+
+## 🌐 External APIs / 외부 API
+
+### 💱 Exchange Rate API (환율 조회 API)
+
+본 프로젝트는 [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)를 사용하여  
+특정 날짜 기준 환율 데이터를 조회합니다.  
+주 서비스(`cdn.jsdelivr.net`)가 응답하지 않을 경우  
+자동으로 보조 서비스(`currency-api.pages.dev`)로 요청을 전환합니다.
+
+#### 🔗 API Endpoints
+| 구분 | URL | 설명 |
+|------|-----|------|
+| Primary | `https://cdn.jsdelivr.net/gh/fawazahmed0/exchange-api@{date}/currencies/{base}.json` | 기준 통화(base) → 타 통화 환율 데이터 |
+| Fallback | `https://currency-api.pages.dev/{base}.json` | CDN 실패 시 자동 대체 |
+
+#### 📅 Example Request / 요청 예시
+```bash
+POST /api/exchange
+{
+  "amount": 20,
+  "currency": "usd",
+  "date": "2025-11-11"
+}
