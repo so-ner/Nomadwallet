@@ -1,5 +1,4 @@
 import {PutObjectCommand} from '@aws-sdk/client-s3';
-import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import {requireAuth} from '@/lib/auth';
 import {r2Client} from "@/lib/r2Client";
 import {NextResponse} from "next/server";
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
     const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${process.env.R2_BUCKET_NAME}/${key}`;
     console.log(publicUrl);
 
-    return NextResponse.json({ success: true, key });
+    return NextResponse.json({key}, {status: 200});
   } catch (error) {
     console.log('R2 upload error: ', error);
     return NextResponse.json({error: 'Upload failed'}, {status: 500});

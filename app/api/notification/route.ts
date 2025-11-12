@@ -31,5 +31,5 @@ export const GET = withAuth(async (user, req) => {
     notifications: data,
     nextCursor,
     hasMore: data.length === limit, // 20개이면 아직 더 있을 가능성이 높다로 판단
-  })
+  }, {status: 201})
 })

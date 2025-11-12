@@ -9,8 +9,6 @@ export async function POST(req: Request) {
     if (!token || !newPassword)
       return NextResponse.json({ message: '잘못된 요청입니다.' }, { status: 400 })
 
-    console.log('token : ', token);
-
     // 토큰 검증
     const tokenHash = await hashToken(token)
     const { data: record } = await supabase
