@@ -23,19 +23,12 @@ export default function RootLayout({
     <html lang="ko">
     <body className={`${geistSans.variable} ${geistMono.variable}`}>
     <SessionProvider>
-      <div className="layout-container">
-        <article className="mobile-frame-area">
-          <div className="mobile-content-wrapper">
+      <div className="flex flex-col w-full min-h-screen md:justify-center md:items-center md:bg-background-400">
+        <article className="w-full flex-grow z-10 md:max-w-[600px] md:h-screen md:shadow-[0_0_20px_rgba(0,0,0,0.1)] md:bg-background-200">
+          <div className="p-5 w-full h-full overflow-y-auto bg-background-50 md:bg-[var(--background)]">
             <Header/>
             {children}
           </div>
-        </article>
-
-        {/* PC 홍보 영역 */}
-        <article className="promo-area-pc">
-          <section className="promo-content">
-            <h1>pc 화면에서만 보이는 영역</h1>
-          </section>
         </article>
       </div>
     </SessionProvider>
