@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import InputField from '@/component/InputField';
 import Button from '@/component/Button';
@@ -9,10 +10,21 @@ import Image from 'next/image';
 import { useToast } from '@/context/ToastContext';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    if (session?.user?.is_onboarded) {
+      router.replace('/home');
+    } else {
+      router.replace('/terms');
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,10 +81,7 @@ export default function LoginPage() {
           errorMessage = '비밀번호가 올바르지 않습니다.';
         }
         showToast(errorMessage);
-      } else if (res?.ok) {
-        console.log('Login success!');
-        window.location.href = '/expense';
-      } else {
+      } else if (!res?.ok) {
         const errorMessage = '로그인에 실패했습니다. 다시 시도해주세요.';
         showToast(errorMessage);
       }
@@ -218,7 +227,7 @@ export default function LoginPage() {
               justifyContent: 'center',
               cursor: 'pointer',
             }}
-            onClick={() => signIn('kakao', { callbackUrl: '/expense' })}
+            onClick={() => signIn('kakao')}
           >
             <Image src="/icons/kakao.svg" alt="카카오 로그인" width={58} height={58} priority />
           </button>
@@ -235,7 +244,7 @@ export default function LoginPage() {
               justifyContent: 'center',
               cursor: 'pointer',
             }}
-            onClick={() => signIn('naver', { callbackUrl: '/expense' })}
+            onClick={() => signIn('naver')}
           >
             <Image src="/icons/naver.svg" alt="네이버 로그인" width={58} height={58} priority />
           </button>
@@ -252,7 +261,7 @@ export default function LoginPage() {
               justifyContent: 'center',
               cursor: 'pointer',
             }}
-            onClick={() => signIn('google', { callbackUrl: '/expense' })}
+            onClick={() => signIn('google')}
           >
             <Image src="/icons/google.svg" alt="구글 로그인" width={58} height={58} priority />
           </button>

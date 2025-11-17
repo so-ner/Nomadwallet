@@ -1,22 +1,6 @@
 import {NextResponse} from 'next/server'
-import {supabase} from "@/lib/supabaseClient";
+import {supabaseAdmin} from "@/lib/supabaseAdmin";
 import {withAuth} from "@/lib/auth";
-
-/**
- * [GET] /api/onboard
- * 최신 버전 약관 동의 목록 조회
- */
-export const GET = withAuth(async (user, req) => {
-  const {data, error} = await supabase
-    .from('terms')
-    .select('terms_id, kind, title, summary, is_required, version, content_url')
-    .eq('retired_at', null) // null일 경우 최신 버전
-    .order('is_required', {ascending: false})
-    .order('kind', {ascending: true})
-  if (error) return NextResponse.json({error: error.message}, {status: 500})
-
-  return NextResponse.json({terms: data}, {status: 200})
-})
 
 /**
  * [POST] /api/onboard
@@ -33,7 +17,7 @@ export const POST = withAuth(async (user, req): Promise<Response> => {
     }
 
     // 현재 활성 약관 목록 가져오기
-    const {data: activeTerms, error: activeErr} = await supabase
+    const {data: activeTerms, error: activeErr} = await supabaseAdmin
       .from('terms')
       .select('terms_id, is_required')
       .is('retired_at', null)
@@ -57,8 +41,20 @@ export const POST = withAuth(async (user, req): Promise<Response> => {
       consent_channels: c.channels ?? null,
     }))
 
-    const {error: upsertErr} = await supabase.from('user_terms').upsert(rows, {onConflict: 'user_id'})
-    if (upsertErr) return NextResponse.json({error: upsertErr.message}, {status: 500})
+    const {error: upsertErr} = await supabaseAdmin.from('user_terms').upsert(rows, {onConflict: 'user_id'})
+    if (upsertErr) {
+      console.error('[onboard] upsert error:', upsertErr);
+      return NextResponse.json({error: upsertErr.message}, {status: 500})
+    }
+
+    const {error: updateErr} = await supabaseAdmin
+      .from('users')
+      .update({is_onboarded: true, updated_at: new Date().toISOString()})
+      .eq('user_id', user.id);
+    if (updateErr) {
+      console.error('[onboard] update user error:', updateErr);
+      return NextResponse.json({error: updateErr.message}, {status: 500})
+    }
 
     return NextResponse.json({ok: true}, {status: 200})
   } catch (err) {

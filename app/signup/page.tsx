@@ -1,61 +1,439 @@
 'use client';
 
-import {useState} from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {signIn} from 'next-auth/react';
-import SubmitButton from '@/component/SubmitButton';
-import TextField from "@/component/inputs/TextField";
+import Button from '@/component/Button';
+import InputField from '@/component/InputField';
+import TopAreaSub from '@/component/top_area/TopAreaSub';
+import {useToast} from '@/context/ToastContext';
+import {uploadProfileImage} from '@/lib/api/storage';
+import {updateNickname} from '@/lib/api/user';
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+[\]{\};:'",.<>/?]).{8,20}$/;
+
+function StepIndicator({current}: { current: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      {[1, 2, 3].map((step) => (
+        <span
+          key={step}
+          className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold ${current === step ? 'bg-[#0F2B4F] text-white' : 'bg-[#D7E3EC] text-[#0F2B4F]'}`}
+        >
+          {step}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+interface TermItem {
+  id: number;
+  label: string;
+  required: boolean;
+}
+
+const TERMS: TermItem[] = [
+  {id: 1, label: '만 14세 이상입니다', required: true},
+  {id: 2, label: '개인정보 수집 및 이용 동의', required: true},
+  {id: 3, label: '서비스 이용 약관 동의', required: true},
+  {id: 4, label: '위치 정보 이용 동의 및 위치 기반 서비스 이용 동의', required: true},
+  {id: 5, label: '마케팅 정보 수신 동의', required: false},
+];
+
+function CheckIcon({checked}: { checked: boolean }) {
+  return (
+    <span
+      className={`flex items-center justify-center w-6 h-6 rounded-full border ${checked ? 'bg-[#0F2B4F] border-[#0F2B4F] text-white' : 'border-[#D0D5DD] text-transparent'}`}
+    >
+      ✓
+    </span>
+  );
+}
 
 export default function SignUpPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const forcedStep = searchParams.get('step');
+  const isSNSFlow = forcedStep === '3';
+  const {showToast} = useToast();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const initialStep = useMemo(() => {
+    if (isSNSFlow) return 4;
+    const parsed = Number(forcedStep);
+    if (parsed >= 1 && parsed <= 4) return parsed;
+    return 1;
+  }, [forcedStep, isSNSFlow]);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-    const phone = formData.get('phone') as string;
+  const [currentStep, setCurrentStep] = useState(initialStep);
+  const [termsAgreed, setTermsAgreed] = useState<Record<number, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+  });
+  const [nameValue, setNameValue] = useState('');
+  const [nameError, setNameError] = useState('');
 
-    const res = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-      name,
-      phone,
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountErrors, setAccountErrors] = useState<{email?: string; password?: string; confirm?: string; general?: string}>({});
+  const [accountValues, setAccountValues] = useState<{email: string; password: string; confirmPassword: string}>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [accountSuccess, setAccountSuccess] = useState<{email?: boolean; confirm?: boolean}>({});
+
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [nicknameError, setNicknameError] = useState('');
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
+
+  const requiredTermsChecked = useMemo(() => {
+    return TERMS.filter((term) => term.required).every((term) => termsAgreed[term.id]);
+  }, [termsAgreed]);
+
+  const allTermsChecked = useMemo(() => {
+    return TERMS.every((term) => termsAgreed[term.id]);
+  }, [termsAgreed]);
+
+  const toggleTerm = (id: number) => {
+    setTermsAgreed((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleAllTerms = () => {
+    const next = !allTermsChecked;
+    const updated: Record<number, boolean> = {};
+    TERMS.forEach((term) => {
+      updated[term.id] = next;
     });
+    setTermsAgreed(updated);
+  };
 
-    setLoading(false);
+  const handleTermsNext = () => {
+    if (!requiredTermsChecked) {
+      showToast('필수 약관에 동의해주세요.');
+      return;
+    }
+    setCurrentStep(2);
+  };
 
-    if (res?.error) {
-      console.error('회원가입 실패:', res.error);
-      setError(res.error);
-    } else {
-      console.log('회원가입 및 로그인 성공!');
-      window.location.href = '/home'; // 로그인 후 홈으로 이동
+  const handleNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const value = (formData.get('fullName') as string | null)?.trim() ?? '';
+    if (!value) {
+      setNameError('실명을 입력해주세요.');
+      return;
+    }
+    setNameValue(value);
+    setCurrentStep(3);
+  };
+
+  const validateAccountFields = useMemo(() => {
+    const {email, password, confirmPassword} = accountValues;
+    const errors: typeof accountErrors = {};
+    const success: typeof accountSuccess = {};
+
+    if (email) {
+      if (!emailRegex.test(email)) {
+        errors.email = '잘못된 이메일 형식입니다.';
+      } else {
+        success.email = true;
+      }
+    }
+
+    if (password) {
+      if (!passwordRegex.test(password)) {
+        errors.password = '영문, 숫자, 특수문자를 포함한 8~20자로 입력해주세요.';
+      }
+    }
+
+    if (confirmPassword) {
+      if (password && password !== confirmPassword) {
+        errors.confirm = '비밀번호가 일치하지 않습니다.';
+      } else if (password && password === confirmPassword) {
+        success.confirm = true;
+      }
+    }
+
+    return {errors, success, isValid: Object.keys(errors).length === 0 && email && password && confirmPassword && password === confirmPassword && emailRegex.test(email) && passwordRegex.test(password)};
+  }, [accountValues]);
+
+  // 실시간 검증 결과를 상태에 반영
+  useEffect(() => {
+    if (accountValues.email || accountValues.password || accountValues.confirmPassword) {
+      setAccountErrors(validateAccountFields.errors);
+      setAccountSuccess(validateAccountFields.success);
+    }
+  }, [validateAccountFields, accountValues]);
+
+  const handleAccountSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const {email, password, confirmPassword} = accountValues;
+
+    if (!validateAccountFields.isValid) {
+      setAccountErrors(validateAccountFields.errors);
+      setAccountSuccess({});
+      return;
+    }
+
+    setAccountLoading(true);
+    setAccountErrors({});
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+        name: nameValue,
+      });
+
+      if (res?.error) {
+        setAccountErrors({general: res.error});
+        return;
+      }
+
+      setCurrentStep(4);
+    } finally {
+      setAccountLoading(false);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-sm border rounded-xl p-6 shadow-sm bg-white">
-        <h1 className="text-2xl font-semibold mb-4 text-center">회원가입</h1>
-        {error && (
-          <p className="text-red-500 text-center text-sm mb-2">{error}</p>
-        )}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <TextField id="name" label="이름" type="text" required/>
-          <TextField id="email" label="이메일" type="text" required/>
-          <TextField id="password" label="비밀번호" type="password" required/>
-          <TextField id="phone" label="전화번호(선택)" type="text" placeholder='01012345678'/>
-          <SubmitButton
-            name={loading ? '회원가입 중...' : '회원가입'}
-            disabled={loading}
+  const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const nickname = (formData.get('nickname') as string | null)?.trim() ?? '';
+    if (!nickname) {
+      setNicknameError('닉네임을 입력해주세요.');
+      return;
+    }
+
+    setProfileLoading(true);
+    try {
+      if (profileFile) {
+        await uploadProfileImage(profileFile);
+      }
+      await updateNickname(nickname);
+      showToast('프로필 정보가 저장되었습니다.');
+      router.push('/permissions');
+    } catch (err: any) {
+      const message = err?.message ?? '프로필 저장에 실패했습니다.';
+      setNicknameError(message);
+      showToast(message);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === 1 || isSNSFlow) {
+      router.push('/');
+      return;
+    }
+    setCurrentStep((prev) => Math.max(1, prev - 1));
+  };
+
+  const renderStep = () => {
+    if (currentStep === 1) {
+      return (
+        <div className="flex flex-col gap-0">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden">
+            <button
+              type="button"
+              onClick={toggleAllTerms}
+              className="flex items-center w-full px-5 py-4 border-b border-[#E5E7EB] text-left"
+            >
+              <CheckIcon checked={allTermsChecked}/>
+              <span className={`ml-3 text-[16px] font-semibold ${allTermsChecked ? 'text-[#0F2B4F]' : 'text-[#1F2933]'}`}>
+                모두 동의
+              </span>
+            </button>
+            <div className="px-5">
+              {TERMS.map((term) => (
+                <button
+                  key={term.id}
+                  type="button"
+                  onClick={() => toggleTerm(term.id)}
+                  className="flex items-center w-full py-4 border-b border-[#EEF1F5] text-left last:border-b-0"
+                >
+                  <CheckIcon checked={!!termsAgreed[term.id]}/>
+                  <div className="flex-1 ml-3">
+                    <p className={`text-[15px] font-semibold ${termsAgreed[term.id] ? 'text-[#0F2B4F]' : 'text-[#1F2933]'}`}>
+                      [{term.required ? '필수' : '선택'}] {term.label}
+                    </p>
+                  </div>
+                  <span className="text-[#CBD2D9] text-xl">›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-8">
+            <Button type="button" variant={requiredTermsChecked ? 'default' : 'disabled'} disabled={!requiredTermsChecked} onClick={handleTermsNext}>
+              다음
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentStep === 2) {
+      return (
+        <form onSubmit={handleNameSubmit} noValidate className="flex flex-col gap-6">
+          <InputField
+            label="이름"
+            name="fullName"
+            placeholder="이름을 입력해주세요"
+            description={nameError || '* 실명을 입력해주세요.'}
+            descriptionType={nameError ? 'error' : 'default'}
+            onChange={(event) => {
+              setNameError('');
+              setNameValue((event.target as HTMLInputElement).value);
+            }}
+            required
           />
+          <Button type="submit" variant={nameValue ? 'default' : 'disabled'} disabled={!nameValue}>
+            다음
+          </Button>
         </form>
+      );
+    }
+
+    if (currentStep === 3) {
+      return (
+        <form onSubmit={handleAccountSubmit} noValidate className="flex flex-col gap-6">
+          <InputField
+            label="이메일 주소"
+            type="email"
+            name="email"
+            placeholder="이메일 주소를 입력해주세요."
+            value={accountValues.email}
+            description={accountErrors.email}
+            descriptionType={accountErrors.email ? 'error' : accountSuccess.email ? 'success' : undefined}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAccountValues((prev) => ({...prev, email: value}));
+            }}
+            required
+          />
+          <InputField
+            label="비밀번호"
+            type="password"
+            name="password"
+            placeholder="비밀번호 입력"
+            value={accountValues.password}
+            showPasswordToggle
+            description={accountErrors.password || '* 영문, 숫자, 특수 문자 포함 8자 이상 입력해주세요.'}
+            descriptionType={accountErrors.password ? 'error' : 'default'}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAccountValues((prev) => ({...prev, password: value}));
+            }}
+            required
+          />
+          <InputField
+            label="비밀번호 확인"
+            type="password"
+            name="confirmPassword"
+            placeholder="비밀번호 입력"
+            value={accountValues.confirmPassword}
+            showPasswordToggle
+            description={
+              accountErrors.confirm
+                ? accountErrors.confirm
+                : accountSuccess.confirm
+                  ? '* 비밀번호가 일치합니다.'
+                  : undefined
+            }
+            descriptionType={accountErrors.confirm ? 'error' : accountSuccess.confirm ? 'success' : undefined}
+            onChange={(e) => {
+              const value = e.target.value;
+              setAccountValues((prev) => ({...prev, confirmPassword: value}));
+            }}
+            required
+          />
+          {accountErrors.general && (
+            <p className="text-sm text-[#EB4F49]">{accountErrors.general}</p>
+          )}
+          <Button type="submit" variant={validateAccountFields.isValid ? 'default' : 'disabled'} disabled={!validateAccountFields.isValid || accountLoading}>
+            {accountLoading ? '확인 중...' : '다음'}
+          </Button>
+        </form>
+      );
+    }
+
+    return (
+      <form onSubmit={handleProfileSubmit} noValidate className="flex flex-col gap-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <div className="w-40 h-40 rounded-3xl bg-[#EEF2F7] flex items-center justify-center overflow-hidden">
+              {profilePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profilePreview} alt="profile preview" className="w-full h-full object-cover"/>
+              ) : (
+                <span className="text-sm text-[#6B7280]">디폴트 이미지</span>
+              )}
+            </div>
+            <label className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-[#424242] text-white flex items-center justify-center cursor-pointer shadow-md hover:bg-[#616161] transition-colors">
+              <span className="text-lg">✎</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    setProfileFile(file);
+                    setProfilePreview(URL.createObjectURL(file));
+                  }
+                }}
+              />
+            </label>
+          </div>
+        </div>
+
+        <InputField
+          label="닉네임"
+          name="nickname"
+          placeholder="닉네임을 입력해주세요"
+          description={nicknameError || '* 앞으로 보여질 닉네임이에요.'}
+          descriptionType={nicknameError ? 'error' : 'default'}
+          onChange={() => setNicknameError('')}
+          required
+        />
+
+        <Button type="submit" variant="default" disabled={profileLoading}>
+          {profileLoading ? '저장 중...' : '다음'}
+        </Button>
+      </form>
+    );
+  };
+
+  return (
+    <div className="flex flex-col items-center min-h-screen w-full px-5 py-8 bg-white">
+      <div className="w-full max-w-[600px] flex flex-col gap-4">
+        <TopAreaSub
+          leftIcon="←"
+          onLeftClick={handleBack}
+        />
+
+        <div style={{padding: '0 2rem', marginTop: '2rem'}}>
+          {currentStep !== 1 && <StepIndicator current={currentStep - 1}/>}
+          <h1 className="text-[24px] font-bold text-[#111827] leading-[32px] mt-4">
+            {currentStep === 1 && 'NomadWallet 서비스 이용약관을 확인해주세요'}
+            {currentStep === 2 && '이름을 입력해주세요'}
+            {currentStep === 3 && '가입 정보를 입력해주세요'}
+            {currentStep === 4 && '프로필과 닉네임을 설정해주세요'}
+          </h1>
+        </div>
+
+        <div className="mt-4 px-5">
+          {renderStep()}
+        </div>
       </div>
     </div>
   );
