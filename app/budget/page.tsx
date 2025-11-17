@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import {Travel} from '@/types/travel';
 import BudgetCard from '@/component/budget/BudgetCard';
 import BottomTabBar from '@/component/bottom/BottomTabBar';
+import NavigationBar from '@/component/NavigationBar';
 
 const BudgetPage: React.FC = () => {
   // NOTE: 화면 UI 확인용 목데이터 (API 연동 전)
@@ -68,7 +69,7 @@ const BudgetPage: React.FC = () => {
       <Link href="/budget/new" className={styles.floatingButton} aria-label="add-budget">
         <span className={styles.floatingIconText}>➕</span>
       </Link>
-      <BottomTabBar />
+      <NavigationBar />
     </div>
   );
 };

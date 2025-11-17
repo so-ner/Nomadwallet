@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import { getExpenses } from '@/lib/api/expense';
 import { Expense, DayExpenseSummary } from '@/types/expense';
-import BottomTabBar from '@/component/bottom/BottomTabBar';
+import NavigationBar from '@/component/NavigationBar';
 
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
@@ -252,7 +252,7 @@ export default function ExpensePage() {
         <span className={styles.floatingIconText}>➕</span>
       </Link>
 
-      <BottomTabBar />
+      <NavigationBar />
     </div>
   );
 }
