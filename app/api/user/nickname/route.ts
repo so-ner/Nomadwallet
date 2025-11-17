@@ -29,11 +29,11 @@ export const PATCH = withAuth(async (user, req): Promise<Response> => {
       return NextResponse.json({error: '닉네임을 입력해주세요.'}, {status: 400})
     }
 
-    // profiles 테이블 기준으로 닉네임 업데이트
+    // users 테이블 기준으로 닉네임 업데이트
     const {error} = await supabaseAdmin
       .from('users')
       .update({nick_name: nickname})
-      .eq('id', user.id)
+      .eq('user_id', user.id)
 
     if (error)
       return NextResponse.json({error: error.message}, {status: 500})

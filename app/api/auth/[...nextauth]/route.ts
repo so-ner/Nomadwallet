@@ -143,21 +143,38 @@ export const authOptions = {
         token.id = user.id
         token.email = user.email
         token.name = user.name ?? null
-        // sns 로그인 시 public.users 정보 연계해오기
-        if (account?.provider && account?.provider !== "credentials") {
-          const publicUser = await getPublicUserByAuthId(user.id)
-          if (publicUser) token.public_user = publicUser
+      }
+
+      // sns 로그인 시 public.users 정보 연계해오기
+      if (token.id && account?.provider && account.provider !== "credentials") {
+        const publicUser = await getPublicUserByAuthId(token.id as string)
+        if (publicUser) {
+          token.public_user = publicUser
+          token.is_onboarded = publicUser.is_onboarded
         }
       }
+
+      if (token.id && (!token.is_onboarded || account?.provider === "credentials")) {
+        const {data: dbUser} = await supabaseAdmin
+          .from('users')
+          .select('is_onboarded')
+          .eq('user_id', token.id)
+          .maybeSingle();
+        if (dbUser) {
+          token.is_onboarded = dbUser.is_onboarded ?? false;
+        }
+      }
+
       return token
     },
     async session({session, token}: { session: Session; token: JWT }) {
+      const resolvedId = token.public_user ? String(token.public_user.user_id) : (token.id as string);
       session.user = {
         ...session.user,
-        id: token.public_user ? String(token.public_user.user_id) : (token.id as string),
+        id: resolvedId,
         email: token.email as string,
         name: token.name as string | null,
-        is_onboarded: token.public_user?.is_onboarded ?? false,
+        is_onboarded: (token as any).is_onboarded ?? token.public_user?.is_onboarded ?? false,
       }
       return session
     },
