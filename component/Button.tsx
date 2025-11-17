@@ -21,47 +21,57 @@ export default function Button({
   const [isHovered, setIsHovered] = React.useState(false);
   const [isPressed, setIsPressed] = React.useState(false);
 
-  // 각 variant에 맞는 테일윈드 클래스 반환
-  const getVariantClasses = () => {
-    // Subhead2: 16px, Bold, 22px line-height
-    const baseClasses = 'w-full h-[5.6rem] rounded-lg flex items-center justify-center text-[16px] leading-[22px] font-bold transition-colors';
-    
+  // 각 variant에 맞는 스타일 반환
+  const getButtonStyle = (): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      width: '100%',
+      height: '5.6rem',
+      borderRadius: '0.8rem', // rounded-lg
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '16px', // subhead-2: 16px
+      lineHeight: '22px', // subhead-2: 22px
+      fontWeight: 700, // subhead-2: Bold
+      transition: 'background-color 0.2s, color 0.2s, border-color 0.2s',
+      border: 'none',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+    };
+
     switch (finalVariant) {
       case 'default':
         if (isPressed) {
-          return `${baseClasses} bg-button-pressed text-white`;
+          return { ...baseStyle, backgroundColor: '#35586E', color: '#FFFFFF' }; // button-pressed
         }
         if (isHovered) {
-          return `${baseClasses} bg-button-hover text-white`;
+          return { ...baseStyle, backgroundColor: '#487290', color: '#FFFFFF' }; // button-hover
         }
-        return `${baseClasses} bg-button-primary text-white hover:bg-button-hover active:bg-button-pressed`;
+        return { ...baseStyle, backgroundColor: '#406686', color: '#FFFFFF' }; // button-primary
       
       case 'hover':
-        return `${baseClasses} bg-button-hover text-white`;
+        return { ...baseStyle, backgroundColor: '#487290', color: '#FFFFFF' }; // button-hover
       
       case 'pressed':
-        return `${baseClasses} bg-button-pressed text-white`;
+        return { ...baseStyle, backgroundColor: '#35586E', color: '#FFFFFF' }; // button-pressed
       
       case 'disabled':
-        return `${baseClasses} bg-button-disabled text-white cursor-not-allowed`;
+        return { ...baseStyle, backgroundColor: '#B6C4CC', color: '#FFFFFF', cursor: 'not-allowed' }; // button-disabled
       
       case 'line':
         if (isPressed) {
-          return `${baseClasses} bg-button-pressed text-white border border-button-pressed`;
+          return { ...baseStyle, backgroundColor: '#35586E', color: '#FFFFFF', border: '1px solid #35586E' };
         }
-        if (isHovered) {
-          return `${baseClasses} bg-button-primary text-white border border-button-primary`;
-        }
-        return `${baseClasses} bg-transparent border border-button-primary text-button-primary hover:bg-button-primary hover:text-white active:bg-button-pressed active:text-white`;
+        return { ...baseStyle, backgroundColor: 'transparent', color: '#406686', border: '1px solid #406686' }; // text-button-primary는 button-primary와 동일
       
       default:
-        return `${baseClasses} bg-button-primary text-white`;
+        return { ...baseStyle, backgroundColor: '#406686', color: '#FFFFFF' };
     }
   };
 
   return (
     <button
-      className={`${getVariantClasses()} ${className}`}
+      style={getButtonStyle()}
+      className={className}
       disabled={disabled || finalVariant === 'disabled'}
       onMouseEnter={(e) => {
         if (finalVariant === 'default' || finalVariant === 'line') {
