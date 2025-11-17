@@ -9,103 +9,99 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        'md': '600px',
+        md: "600px",
+      },
+      fontFamily: {
+        sans: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "sans-serif"],
+      },
+      fontSize: {
+        // Headline 스타일
+        "headline-1": ["26px", { lineHeight: "36px", fontWeight: "700" }], // Bold
+        "headline-2": ["24px", { lineHeight: "32px", fontWeight: "700" }], // Bold
+        "headline-3": ["22px", { lineHeight: "29px", fontWeight: "700" }], // Bold
+        "headline-4": ["20px", { lineHeight: "29px", fontWeight: "700" }], // Bold
+        "headline-5": ["18px", { lineHeight: "22px", fontWeight: "600" }], // Semi-bold
+        // Subhead 스타일
+        "subhead-1": ["20px", { lineHeight: "22px", fontWeight: "600" }], // Semi-bold
+        "subhead-2": ["16px", { lineHeight: "22px", fontWeight: "700" }], // Bold
+        "subhead-3": ["14px", { lineHeight: "22px", fontWeight: "600" }], // Semi-bold
+        // Body 스타일
+        "body-1": ["30px", { lineHeight: "36px", fontWeight: "600" }], // Semi-bold
+        "body-2": ["18px", { lineHeight: "22px", fontWeight: "500" }], // Medium
+        "body-3": ["16px", { lineHeight: "24px", fontWeight: "600" }], // Semi-bold
+        "body-4": ["16px", { lineHeight: "24px", fontWeight: "500" }], // Medium
+        "body-5": ["14px", { lineHeight: "17px", fontWeight: "500" }], // Medium
+        // Caption 스타일
+        "caption-1": ["14px", { lineHeight: "16px", fontWeight: "600" }], // Semi-bold
+        "caption-2": ["12px", { lineHeight: "16px", fontWeight: "500" }], // Medium
       },
       colors: {
-        // Primary 컬러 팔레트 (100: 가장 밝음, 900: 가장 어두움)
+        // Primary 컬러 팔레트
         primary: {
-          100: '#D9F4F9', // 매우 밝은 파란색
-          200: '#B5E6F3', // 밝은 파란색
-          300: '#87C4DB', // 연한 파란색
-          400: '#609BB8', // 중간 밝기 파란색
-          500: '#326789', // 메인 파란색
-          600: '#245175', // 어두운 파란색
-          700: '#193D62', // 더 어두운 파란색
-          800: '#0F2B4F', // 매우 어두운 네이비 블루
-          900: '#091E41', // 가장 어두운 네이비 블루
+          100: "#D9F4F9",
+          200: "#B5E6F3",
+          300: "#87C4DB",
+          400: "#609BB8",
+          500: "#326789",
+          600: "#245175",
+          700: "#193D62",
+          800: "#0F2B4F",
+          900: "#091E41",
         },
-        // Secondary 컬러 팔레트
+
+        // Secondary 컬러 팔레트 (이미지 기준)
         secondary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50:  "#FFFFFF",
+          100: "#F4F5EC",
+          200: "#E9ECDA",
+          300: "#C3C7B0",
+          400: "#8C907B",
+          500: "#444739",
+          600: "#383D2A",
+          700: "#2D331F",
+          800: "#232914",
+          900: "#1B220D",
         },
-        // Success 컬러 팔레트 (그린)
-        success: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#10b981', // light
-          500: '#059669', // 메인
-          600: '#047857',
-          700: '#065f46',
-          800: '#064e3b',
-          900: '#022c22',
+
+        // Grayscale 팔레트
+        grayscale: {
+          100: "#FFFFFF",
+          200: "#EEEEEE",
+          300: "#E0E0E0",
+          400: "#BDBDBD",
+          500: "#9E9E9E",
+          600: "#757575",
+          700: "#616161",
+          800: "#424242",
+          900: "#212121",
         },
-        // Warning 컬러 팔레트 (옐로우)
-        warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b', // 메인
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+
+        // 버튼 토큰
+        button: {
+          primary:  "#406686", // button-primary
+          hover:    "#487290", // button-hover
+          pressed:  "#35586E", // button-pressed
+          disabled: "#B6C4CC", // button-disabled
         },
-        // Background 컬러 팔레트
-        background: {
-          50: '#ffffff', // DEFAULT
-          100: '#f9fafb', // light
-          200: '#f7f7f7', // secondary
-          300: '#f3f4f6', // tertiary
-          400: '#f0f8ff', // promo
-          500: '#e5e7eb',
-          600: '#d1d5db',
-          700: '#9ca3af',
-          800: '#6b7280',
-          900: '#0a0a0a', // dark
-        },
-        // Text 컬러 팔레트
-        text: {
-          50: '#ededed', // light
-          100: '#f9fafb',
-          200: '#f3f4f6',
-          300: '#e5e7eb',
-          400: '#d1d5db',
-          500: '#6b7280', // secondary
-          600: '#374151', // dark
-          700: '#1f2937', // tertiary
-          800: '#171717', // DEFAULT
-          900: '#0a0a0a',
-        },
-        // Border 컬러 팔레트
-        border: {
-          50: '#f9fafb',
-          100: '#f3f4f6',
-          200: '#e5e7eb', // DEFAULT
-          300: '#d1d5db', // light
-          400: '#9ca3af',
-          500: '#6b7280',
-          600: '#4b5563',
-          700: '#374151',
-          800: '#1f2937',
-          900: '#111827',
+
+        // 텍스트 토큰
+        "text-on-color": "#FFFFFF", // text-on-color (예: 버튼 위의 흰 텍스트)
+        "text-primary":  "#334D56", // 텍스트 토큰용 메인 컬러
+
+        // Bg 토큰
+        page: "#F7F7F7", // bg-page -> 사용 시 `bg-page`
+
+        // 수입/지출/성공/입력 토큰
+        status: {
+          income:  "#5C97E9", // income
+          spend:   "#EB4F49", // spend
+          success: "#60BA63", // success
+          input:   "#F4F5FA", // input
         },
       },
     },
   },
   plugins: [],
 };
-export default config;
 
+export default config;
