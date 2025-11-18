@@ -1,3 +1,5 @@
+import { apiFetch } from './fetch';
+
 export interface TermItem {
   id: number;
   kind: string | null;
@@ -21,7 +23,7 @@ interface ApiTermsResponse {
 }
 
 export async function fetchTerms(): Promise<TermItem[]> {
-  const res = await fetch('/api/terms');
+  const res = await apiFetch('/api/terms');
   if (!res.ok) {
     throw new Error('약관 정보를 불러오지 못했습니다.');
   }

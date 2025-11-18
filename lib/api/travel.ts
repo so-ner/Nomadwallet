@@ -57,8 +57,10 @@ function generateDummyTravels(): Travel[] {
   ];
 }
 
+import { apiFetch } from './fetch';
+
 export async function getTravels(): Promise<ApiGetTravelsResponse> {
-  const res = await fetch('/api/travel', { cache: 'no-store' });
+  const res = await apiFetch('/api/travel', { cache: 'no-store' });
   if (!res.ok) {
     throw new Error('예산 목록 조회에 실패했습니다.');
   }
@@ -71,7 +73,7 @@ export async function getTravelsForExpense(): Promise<ApiGetTravelsResponse> {
 }
 
 export async function createTravel(data: PostTravelRequest): Promise<ApiCreateTravelResponse> {
-  const res = await fetch('/api/travel', {
+  const res = await apiFetch('/api/travel', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -88,7 +90,7 @@ export async function createTravel(data: PostTravelRequest): Promise<ApiCreateTr
 }
 
 export async function getTravel(travelId: number): Promise<ApiGetTravelResponse> {
-  const res = await fetch(`/api/travel/${travelId}`, { cache: 'no-store' });
+  const res = await apiFetch(`/api/travel/${travelId}`, { cache: 'no-store' });
   if (!res.ok) {
     throw new Error('예산 상세 조회에 실패했습니다.');
   }
@@ -96,7 +98,7 @@ export async function getTravel(travelId: number): Promise<ApiGetTravelResponse>
 }
 
 export async function updateTravel(travelId: number, data: PutTravelRequest): Promise<ApiUpdateTravelResponse> {
-  const res = await fetch(`/api/travel/${travelId}`, {
+  const res = await apiFetch(`/api/travel/${travelId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -113,7 +115,7 @@ export async function updateTravel(travelId: number, data: PutTravelRequest): Pr
 }
 
 export async function deleteTravel(travelId: number): Promise<ApiDeleteTravelResponse> {
-  const res = await fetch(`/api/travel/${travelId}`, {
+  const res = await apiFetch(`/api/travel/${travelId}`, {
     method: 'DELETE',
   });
 

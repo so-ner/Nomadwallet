@@ -3,10 +3,12 @@
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import styles from './page.module.css';
 import { getExpenses } from '@/lib/api/expense';
 import { Expense, DayExpenseSummary } from '@/types/expense';
 import NavigationBar from '@/component/NavigationBar';
+import TopAreaMain from '@/component/top_area/TopAreaMain';
 
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
@@ -19,27 +21,38 @@ const nfmt = (n: number) => new Intl.NumberFormat('ko-KR').format(n) + '원';
 
 function useMonthlySummary(year: number, month: number, expenses: Expense[]) {
   return useMemo(() => {
-    let total = 0;
+    let expenseTotal = 0;
+    let incomeTotal = 0;
     expenses.forEach((exp) => {
       const d = new Date(exp.expense_date);
       if (d.getFullYear() === year && d.getMonth() + 1 === month) {
-        total += exp.amount;
+        if (exp.type === 'EXPENSE') {
+          expenseTotal += exp.amount;
+        } else if (exp.type === 'INCOME') {
+          incomeTotal += exp.amount;
+        }
       }
     });
-    return { expense: total, total: -total };
+    return { expense: expenseTotal, income: incomeTotal };
   }, [year, month, expenses]);
 }
 
-function useDayMap(expenses: Expense[]): Record<string, DayExpenseSummary> {
+function useDayMap(expenses: Expense[]): Record<string, DayExpenseSummary & { expense: number; income: number }> {
   return useMemo(() => {
-    const map: Record<string, DayExpenseSummary> = {};
+    const map: Record<string, DayExpenseSummary & { expense: number; income: number }> = {};
     expenses.forEach((exp) => {
       const dateStr = exp.expense_date;
       if (!map[dateStr]) {
-        map[dateStr] = { date: dateStr, total: 0, items: [] };
+        map[dateStr] = { date: dateStr, total: 0, expense: 0, income: 0, items: [] };
       }
       map[dateStr].items.push(exp);
-      map[dateStr].total += exp.amount;
+      if (exp.type === 'EXPENSE') {
+        map[dateStr].expense += exp.amount;
+        map[dateStr].total -= exp.amount;
+      } else if (exp.type === 'INCOME') {
+        map[dateStr].income += exp.amount;
+        map[dateStr].total += exp.amount;
+      }
     });
     return map;
   }, [expenses]);
@@ -93,7 +106,7 @@ export default function ExpensePage() {
 
   const handlePrev = () => setCursor(new Date(year, calendarMonth - 1, 1));
   const handleNext = () => setCursor(new Date(year, calendarMonth + 1, 1));
-  const monthLabel = `${year}년 ${month}월`;
+  const monthLabel = `${year}.${String(month + 1).padStart(2, '0')}`;
   const openFor = (iso?: string) => {
     if (iso) setOpenISO(iso);
   };
@@ -102,7 +115,8 @@ export default function ExpensePage() {
   const selected = openISO ? dayMap[openISO] : undefined;
   const selectedDate = openISO ? new Date(openISO) : null;
   const selectedCount = selected ? selected.items.length : 0;
-  const selectedExpenseSum = selected ? selected.total : 0;
+  const selectedExpenseSum = selected ? selected.expense : 0;
+  const selectedIncomeSum = selected ? selected.income : 0;
 
   if (loading) {
     return (
@@ -114,26 +128,30 @@ export default function ExpensePage() {
 
   return (
     <div className={styles.pageContainer}>
+      <TopAreaMain title="NOMAD WALLET" />
       <div className={styles.topBar}>
         <div className={styles.topBarContent}>
           <button className={styles.navButton} onClick={handlePrev} aria-label="이전 달">
-            ←
+            ◄
           </button>
           <div className={styles.monthLabel}>{monthLabel}</div>
           <button className={styles.navButton} onClick={handleNext} aria-label="다음 달">
-            →
+            ►
           </button>
+          <Link href="/statistics" className={styles.reportButton}>
+            소비 리포트
+          </Link>
         </div>
       </div>
 
       <div className={styles.summaryRow}>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>지출</span>
-          <span className={styles.summaryExpense}>{nfmt(summary.expense)}</span>
+        <div className={styles.summaryBox}>
+          <div className={styles.summaryLabel}>월 지출</div>
+          <div className={styles.summaryExpense}>-{nfmt(summary.expense)}</div>
         </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>합계</span>
-          <span className={styles.summaryTotal}>{nfmt(Math.abs(summary.total))}</span>
+        <div className={styles.summaryBox}>
+          <div className={styles.summaryLabel}>월 수입</div>
+          <div className={styles.summaryIncome}>+{nfmt(summary.income)}</div>
         </div>
       </div>
 
@@ -150,24 +168,30 @@ export default function ExpensePage() {
             {cells.map((c, i) => {
               const val = c.dateISO ? dayMap[c.dateISO] : undefined;
               const isToday = c.dateISO === ymd(new Date());
+              const isSelected = c.dateISO === openISO;
               return (
                 <button
                   key={i}
                   type="button"
                   onClick={() => openFor(c.dateISO)}
-                  className={`${styles.calendarCell} ${c.outside ? styles.cellOutside : styles.cellInside}`}
+                  className={`${styles.calendarCell} ${c.outside ? styles.cellOutside : styles.cellInside} ${isToday ? styles.cellToday : ''} ${isSelected ? styles.cellSelected : ''}`}
                 >
                   {c.label ? (
-                    <div className={`${styles.dayLabel} ${isToday ? styles.dayToday : ''}`}>
+                    <div className={styles.dayLabel}>
                       {c.label}
                     </div>
                   ) : null}
 
-                  {val && val.total !== 0 ? (
-                    <div className={styles.dayAmount}>
-                      <div className={styles.amountText}>{nfmt(val.total)}</div>
+                  {val && (val.expense > 0 || val.income > 0) && (
+                    <div className={styles.dayAmounts}>
+                      {val.expense > 0 && (
+                        <div className={styles.amountTextExpense}>-{nfmt(val.expense)}</div>
+                      )}
+                      {val.income > 0 && (
+                        <div className={styles.amountTextIncome}>+{nfmt(val.income)}</div>
+                      )}
                     </div>
-                  ) : null}
+                  )}
                 </button>
               );
             })}
@@ -198,7 +222,12 @@ export default function ExpensePage() {
             </div>
             <div className={styles.selectedDateSummary}>
               <div className={styles.summaryCount}>총 {selectedCount}건</div>
-              <div className={styles.summaryExpenseAmount}>-{nfmt(selectedExpenseSum)}</div>
+              {selectedExpenseSum > 0 && (
+                <div className={styles.summaryExpenseAmount}>-{nfmt(selectedExpenseSum)}</div>
+              )}
+              {selectedIncomeSum > 0 && (
+                <div className={styles.summaryIncomeAmount}>+{nfmt(selectedIncomeSum)}</div>
+              )}
             </div>
           </div>
         ) : null}
@@ -224,7 +253,9 @@ export default function ExpensePage() {
                         </div>
                       </div>
                     </div>
-                    <div className={styles.expenseAmount}>-{nfmt(it.amount)}</div>
+                    <div className={it.type === 'EXPENSE' ? styles.expenseAmount : styles.incomeAmount}>
+                      {it.type === 'EXPENSE' ? '-' : '+'}{nfmt(it.amount)}
+                    </div>
                   </button>
                 </li>
               ))}

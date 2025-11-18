@@ -50,3 +50,24 @@ export interface ApiUpdateTravelResponse {
 export interface ApiDeleteTravelResponse {
   success: boolean;
 }
+
+// API 요청 스키마
+export interface PostTravelRequest {
+  travel_title: string;
+  start_date: string;
+  end_date: string;
+  total_budget: number;
+  currency: number;
+  warn_type?: WarnType;
+  warn_detail_cond?: string;
+}
+
+export interface PutTravelRequest {
+  travel_title?: string;
+  start_date?: string;
+  end_date?: string;
+  total_budget?: number;
+  currency?: number;
+  warn_type?: WarnType;
+  warn_detail_cond?: string;
+}

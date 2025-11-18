@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 
+import { apiFetch } from '@/lib/api/fetch';
+
 type ProfileState = 'basic' | 'upload';
 
 async function changeProfile({
@@ -23,13 +25,13 @@ async function changeProfile({
     formData.append('file', file);
 
     // R2 업로드
-    const res = await fetch('/api/storage/upload', {
+    const res = await apiFetch('/api/storage/upload', {
       method: 'POST',
       body: formData
     }).then((r) => r.json());
 
     // Supabase에 url 저장
-    const response = await fetch('/api/storage/save', {
+    const response = await apiFetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,7 +42,7 @@ async function changeProfile({
   } else if (from === 'upload' && to === 'basic') {
     // 업로드 → 기본 (랜덤하게)
     if (currentKey) {
-      await fetch('/api/storage/delete', {
+      await apiFetch('/api/storage/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -49,8 +51,8 @@ async function changeProfile({
       });
     }
 
-    const randomBasic = Math.floor(Math.random() * 2) + 1; // 1 또는 2
-    const response = await fetch('/api/storage/save', {
+    const randomBasic = Math.floor(Math.random() * 3) + 1; // 1, 2, 또는 3
+    const response = await apiFetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +68,7 @@ async function changeProfile({
     const formData = new FormData();
     formData.append('file', file);
 
-    await fetch('/api/storage/delete', {
+    await apiFetch('/api/storage/delete', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -75,13 +77,13 @@ async function changeProfile({
     });
 
     // R2 업로드
-    const res = await fetch('/api/storage/upload', {
+    const res = await apiFetch('/api/storage/upload', {
       method: 'POST',
       body: formData
     }).then((r) => r.json());
 
     // Supabase에 url 업데이트
-    const response = await fetch('/api/storage/save', {
+    const response = await apiFetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

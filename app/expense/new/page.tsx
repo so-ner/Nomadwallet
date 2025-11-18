@@ -31,12 +31,13 @@ export default function AddExpensePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dateParam = searchParams.get('date');
+  const travelIdParam = searchParams.get('travel_id');
   
   const [formState, setFormState] = useState<ExpenseFormState>({
     expense_date: dateParam || '',
     category: '',
     amount: '',
-    travel_id: null,
+    travel_id: travelIdParam ? Number(travelIdParam) : null,
     currency: CurrencyCode.KRW,
     exchange_rate: '',
     memo: '',
@@ -58,6 +59,7 @@ export default function AddExpensePage() {
         setFormState((prev) => ({
           ...prev,
           expense_date: prev.expense_date || new Date().toISOString().slice(0, 10),
+          travel_id: prev.travel_id || (travelIdParam ? Number(travelIdParam) : null),
         }));
       } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -66,7 +68,7 @@ export default function AddExpensePage() {
       }
     };
     load();
-  }, []);
+  }, [travelIdParam]);
 
   useEffect(() => {
     if (formState.currency !== CurrencyCode.KRW && formState.currency) {

@@ -1,0 +1,67 @@
+{
+	"af": {
+		"country_name": "afghanistan",
+		"country_iso3": "afg",
+		"country_iso_numeric": "4",
+		"currency_name": "afghani",
+		"currency_code": "afn",
+		"currency_number": "971"
+	},
+	"al": {
+		"country_name": "albania",
+		"country_iso3": "alb",
+		"country_iso_numeric": "8",
+		"currency_name": "lek",
+		"currency_code": "all",
+		"currency_number": "8"
+	},
+	"dz": {
+		"country_name": "algeria",
+		"country_iso3": "dza",
+		"country_iso_numeric": "12",
+		"currency_name": "algerian dinar",
+		"currency_code": "dzd",
+		"currency_number": "12"
+	},
+	"us": {
+		"country_name": "united states of america (the)",
+		"country_iso3": "usa",
+		"country_iso_numeric": "840",
+		"currency_name": "us dollar",
+		"currency_code": "usd",
+		"currency_number": "840"
+	},
+	"kr": {
+		"country_name": "korea (the republic of)",
+		"country_iso3": "kor",
+		"country_iso_numeric": "410",
+		"currency_name": "won",
+		"currency_code": "krw",
+		"currency_number": "410"
+	},
+	"jp": {
+		"country_name": "japan",
+		"country_iso3": "jpn",
+		"country_iso_numeric": "392",
+		"currency_name": "yen",
+		"currency_code": "jpy",
+		"currency_number": "392"
+	},
+	"fr": {
+		"country_name": "france",
+		"country_iso3": "fra",
+		"country_iso_numeric": "250",
+		"currency_name": "euro",
+		"currency_code": "eur",
+		"currency_number": "978"
+	},
+	"ch": {
+		"country_name": "switzerland",
+		"country_iso3": "che",
+		"country_iso_numeric": "756",
+		"currency_name": "swiss franc",
+		"currency_code": "chf",
+		"currency_number": "756"
+	}
+}
+

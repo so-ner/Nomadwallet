@@ -1,3 +1,5 @@
+import { apiFetch } from './fetch';
+
 export interface ConsentPayload {
   termsId: number;
   channels?: string[];
@@ -8,7 +10,7 @@ export interface SubmitConsentsResponse {
 }
 
 export async function submitConsents(consents: ConsentPayload[]): Promise<SubmitConsentsResponse> {
-  const res = await fetch('/api/onboard', {
+  const res = await apiFetch('/api/onboard', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
