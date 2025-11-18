@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import InputField from '@/component/InputField';
 import Button from '@/component/Button';
-import Image from 'next/image';
+import Logo from '@/component/auth/Logo';
+import SocialLoginButtons from '@/component/auth/SocialLoginButtons';
 import { useToast } from '@/context/ToastContext';
 
 export default function LoginPage() {
@@ -98,24 +99,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center min-h-screen w-full">
       {/* 로고 영역 */}
-      <div
-        style={{
-          width: '100%',
-          height: '13.2rem',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          paddingTop: '5.7rem',
-        }}
-      >
-        <Image
-          src="/icons/logo.svg"
-          alt="로고"
-          width={154}
-          height={35}
-          style={{ width: '154px', height: '35px' }}
-        />
-      </div>
+      <Logo />
 
       {/* 로그인 폼 */}
       <form onSubmit={handleSubmit} noValidate className="w-full flex flex-col" style={{ maxWidth: '600px' }}>
@@ -194,81 +178,8 @@ export default function LoginPage() {
         </div>
       </form>
 
-
       {/* 간편 로그인 */}
-      <div className="flex flex-col items-center gap-4" style={{ maxWidth: '600px', width: '100%' }}>
-        <h3
-          style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            lineHeight: '24px',
-            color: '#212121',
-            marginTop: '4.6rem',
-          }}
-        >
-          간편 로그인
-        </h3>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem 6.8rem',
-            gap: '3.2rem',
-          }}
-        >
-          {/* 카카오 */}
-          <button
-            type="button"
-            style={{
-              width: '5.8rem',
-              height: '5.8rem',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            onClick={() => signIn('kakao')}
-          >
-            <Image src="/icons/kakao.svg" alt="카카오 로그인" width={58} height={58} priority />
-          </button>
-
-          {/* 네이버 */}
-          <button
-            type="button"
-            style={{
-              width: '5.8rem',
-              height: '5.8rem',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            onClick={() => signIn('naver')}
-          >
-            <Image src="/icons/naver.svg" alt="네이버 로그인" width={58} height={58} priority />
-          </button>
-
-          {/* 구글 */}
-          <button
-            type="button"
-            style={{
-              width: '5.8rem',
-              height: '5.8rem',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            onClick={() => signIn('google')}
-          >
-            <Image src="/icons/google.svg" alt="구글 로그인" width={58} height={58} priority />
-          </button>
-        </div>
-      </div>
+      <SocialLoginButtons />
     </div>
   );
 }
