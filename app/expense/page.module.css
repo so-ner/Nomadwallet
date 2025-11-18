@@ -1,7 +1,7 @@
 .pageContainer {
   position: relative;
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   padding-bottom: 4rem; /* 탭바 높이 */
@@ -17,9 +17,6 @@
 
 /* Top Bar */
 .topBar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -56,39 +53,72 @@
   color: #1f2937;
 }
 
+.reportButton {
+  padding: 0.5rem 1rem;
+  background-color: #E0F2F7;
+  color: #4A6B87;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
 /* Summary Row */
 .summaryRow {
   max-width: 480px;
   margin: 0 auto;
   width: 100%;
   padding: 0.75rem 1rem;
-}
-
-.summaryItem {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.summaryLabel {
-  color: #6b7280;
-}
-
-.summaryExpense {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-.summaryTotal {
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.summaryRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.summaryBox {
+  flex: 1;
+  background-color: #f3f4f6;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summaryLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.summaryLabel::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #ef4444;
+}
+
+.summaryBox:last-child .summaryLabel::before {
+  background-color: #3b82f6;
+}
+
+.summaryExpense {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.summaryIncome {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #3b82f6;
 }
 
 /* Calendar Container */
@@ -154,27 +184,61 @@
   left: 0.5rem;
   font-size: 0.875rem;
   color: #374151;
+  z-index: 1;
 }
 
-.dayToday {
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.5rem;
-  background-color: #1f2937;
+.cellToday {
+  background-color: #E0F2F7;
+}
+
+.cellToday .dayLabel {
+  background-color: #E0F2F7;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cellSelected {
+  background-color: #4A6B87;
+}
+
+.cellSelected .dayLabel {
+  background-color: #4A6B87;
   color: #ffffff;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dayAmount {
+.dayAmounts {
   position: absolute;
   bottom: 0.25rem;
+  left: 0.5rem;
   right: 0.5rem;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  align-items: flex-start;
+}
+
+.amountTextExpense {
   font-size: 0.75rem;
   line-height: 1;
   font-weight: 600;
+  color: #ef4444;
 }
 
-.amountText {
-  color: #ef4444;
+.amountTextIncome {
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 600;
+  color: #3b82f6;
 }
 
 /* Backdrop */
@@ -283,7 +347,12 @@
 }
 
 .summaryExpenseAmount {
-  color: #374151;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.summaryIncomeAmount {
+  color: #3b82f6;
   font-weight: 600;
 }
 
@@ -350,7 +419,13 @@
 }
 
 .expenseAmount {
-  color: #374151;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.incomeAmount {
+  color: #3b82f6;
   font-weight: 600;
   font-size: 0.9375rem;
 }

@@ -22,7 +22,9 @@ export default function LoginPage() {
     if (session?.user?.is_onboarded) {
       router.replace('/home');
     } else {
-      router.replace('/terms');
+      // is_onboarded가 false인 경우 프로필 설정 페이지로 이동
+      // 회원가입 플로우의 Step 4 (프로필 설정)로 이동
+      router.replace('/signup?step=4');
     }
   }, [session, status, router]);
 
@@ -184,7 +186,7 @@ export default function LoginPage() {
             {loading ? '로그인 중...' : '로그인하기'}
           </Button>
 
-          <Link href="/sign" style={{ textDecoration: 'none' }}>
+          <Link href="/signup" style={{ textDecoration: 'none' }}>
             <Button type="button" variant="line">
               회원가입 하기
             </Button>
