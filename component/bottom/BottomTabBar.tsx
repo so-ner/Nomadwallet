@@ -22,7 +22,7 @@ const BottomTabBar: React.FC = () => {
     <nav className={styles.bottomNavBar}>
       <TabButton href="/expense" label="지출" icon="🧾" />
       <TabButton href="/budget" label="예산" icon="🏠" />
-      <TabButton href="/settings" label="설정" icon="👤" />
+      <TabButton href="/mypage" label="마이페이지" icon="👤" />
     </nav>
   );
 };

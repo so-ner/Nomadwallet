@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -9,6 +9,10 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   descriptionType?: 'default' | 'success' | 'error';
   type?: 'text' | 'email' | 'password' | 'tel' | 'number';
   showPasswordToggle?: boolean;
+  rightButton?: React.ReactNode;
+  rightElement?: React.ReactNode;
+  maxLength?: number;
+  showCharCount?: boolean;
 }
 
 export default function InputField({
@@ -19,11 +23,22 @@ export default function InputField({
   showPasswordToggle = false,
   className = '',
   value,
+  rightButton,
+  rightElement,
+  maxLength,
+  showCharCount = false,
   ...props
 }: InputFieldProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [inputValue, setInputValue] = useState(value || '');
   const hasValue = inputValue !== '';
+
+  // value prop이 변경될 때 내부 state 동기화
+  useEffect(() => {
+    if (value !== undefined) {
+      setInputValue(value);
+    }
+  }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -43,9 +58,17 @@ export default function InputField({
 
   const inputType = type === 'password' && isPasswordVisible ? 'text' : type;
 
-  // 외부 컨테이너 스타일 (input처럼 보이는 껍데기)
-  const containerStyle: React.CSSProperties = {
+  // 외부 wrapper 스타일 (input과 버튼을 감싸는 컨테이너)
+  const wrapperStyle: React.CSSProperties = {
     width: '100%',
+    display: 'flex',
+    alignItems: 'stretch',
+    gap: rightButton ? '1.2rem' : '0',
+  };
+
+  // Input 컨테이너 스타일 (input처럼 보이는 껍데기)
+  const containerStyle: React.CSSProperties = {
+    flex: 1,
     height: '5.4rem',
     display: 'flex',
     alignItems: 'center',
@@ -76,43 +99,79 @@ export default function InputField({
         {label}
       </label>
 
-      {/* Input Container (외부 껍데기) */}
-      <div style={containerStyle} className={className}>
-        <input
-          {...props}
-          type={inputType}
-          value={inputValue}
-          onChange={handleChange}
-          style={inputStyle}
-          placeholder={props.placeholder}
-        />
+      {/* Wrapper: Input과 버튼을 감싸는 컨테이너 */}
+      <div style={wrapperStyle}>
+        {/* Input Container (외부 껍데기) */}
+        <div style={containerStyle} className={className}>
+          <input
+            {...props}
+            type={inputType}
+            value={inputValue}
+            onChange={handleChange}
+            style={inputStyle}
+            placeholder={props.placeholder}
+            maxLength={maxLength}
+          />
 
-        {/* Password Toggle Icon */}
-        {showPasswordToggle && type === 'password' && (
-          <button
-            type="button"
-            onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-            style={{
-              cursor: 'pointer',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '24px',
-              height: '24px',
-            }}
-            aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
-          >
-            <Image
-              src="/icons/icon-password-hide.svg"
-              alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
-              width={24}
-              height={24}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </button>
+          {/* Right Element (예: 문자 수 배지) */}
+          {rightElement && (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {rightElement}
+            </div>
+          )}
+
+          {/* Character Count Badge */}
+          {showCharCount && maxLength && (
+            <div
+              style={{
+                backgroundColor: '#406686',
+                color: '#FFFFFF',
+                fontSize: '12px',
+                fontWeight: 600,
+                padding: '0.2rem 0.6rem',
+                borderRadius: '0.4rem',
+                minWidth: '2.4rem',
+                textAlign: 'center',
+              }}
+            >
+              {inputValue.length}
+            </div>
+          )}
+
+          {/* Password Toggle Icon */}
+          {showPasswordToggle && type === 'password' && (
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+              style={{
+                cursor: 'pointer',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px',
+              }}
+              aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+            >
+              <Image
+                src="/icons/icon-password-hide.svg"
+                alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+                width={24}
+                height={24}
+                style={{ width: '24px', height: '24px' }}
+              />
+            </button>
+          )}
+        </div>
+
+        {/* Right Button - input 컨테이너 밖에 배치 */}
+        {rightButton && (
+          <div style={{ display: 'flex', alignItems: 'stretch' }}>
+            {rightButton}
+          </div>
         )}
       </div>
 

@@ -5,6 +5,9 @@ declare module "next-auth" {
     user: {
       id: string
       is_onboarded?: boolean
+      nick_name?: string | null
+      profile_image_url?: string | null
+      user_name?: string | null
     } & DefaultSession["user"];
     expires: string
     accessToken?: string
@@ -24,6 +27,9 @@ declare module "next-auth/jwt" {
     id: string
     name: string
     is_onboarded?: boolean
+    nick_name?: string | null
+    profile_image_url?: string | null
+    user_name?: string | null
     accessToken?: string
     accessTokenExpires?: number
     refreshToken?: string

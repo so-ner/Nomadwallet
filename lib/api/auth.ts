@@ -27,13 +27,15 @@ const getBaseUrl = () => {
   return base ?? '';
 };
 
+import { apiFetch } from './fetch';
+
 async function request<PostBody>(
   url: string,
   payload: PostBody,
   defaultErrorMessage: string,
 ): Promise<ApiMessageResponse> {
   const endpoint = `${getBaseUrl()}${url}`;
-  const res = await fetch(endpoint, {
+  const res = await apiFetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

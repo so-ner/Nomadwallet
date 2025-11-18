@@ -68,33 +68,36 @@ export default function Button({
     }
   };
 
+  const { style: propsStyle, ...restProps } = props;
+  const mergedStyle = { ...getButtonStyle(), ...propsStyle };
+
   return (
     <button
-      style={getButtonStyle()}
+      style={mergedStyle}
       className={className}
       disabled={disabled || finalVariant === 'disabled'}
       onMouseEnter={(e) => {
         if (finalVariant === 'default' || finalVariant === 'line') {
           setIsHovered(true);
         }
-        props.onMouseEnter?.(e);
+        restProps.onMouseEnter?.(e);
       }}
       onMouseLeave={(e) => {
         setIsHovered(false);
         setIsPressed(false);
-        props.onMouseLeave?.(e);
+        restProps.onMouseLeave?.(e);
       }}
       onMouseDown={(e) => {
         if (finalVariant === 'default' || finalVariant === 'line') {
           setIsPressed(true);
         }
-        props.onMouseDown?.(e);
+        restProps.onMouseDown?.(e);
       }}
       onMouseUp={(e) => {
         setIsPressed(false);
-        props.onMouseUp?.(e);
+        restProps.onMouseUp?.(e);
       }}
-      {...props}
+      {...restProps}
     >
       {children}
     </button>
