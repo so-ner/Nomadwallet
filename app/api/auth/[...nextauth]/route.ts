@@ -1,11 +1,13 @@
-import type {Account, Session, User} from "next-auth"
 import NextAuth from "next-auth"
-import {SupabaseAdapter} from "@auth/supabase-adapter";
-import {supabaseAdmin} from "@/lib/supabaseAdmin"
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials"
 import type {JWT} from "next-auth/jwt"
+import type {Account, Session, User} from "next-auth"
 import {supabase} from "@/lib/supabaseClient";
+import {supabaseAdmin} from "@/lib/supabaseAdmin"
+import {SupabaseAdapter} from "@auth/supabase-adapter";
+import GoogleProvider from "next-auth/providers/google";
+import KakaoProvider from "next-auth/providers/kakao";
+import NaverProvider from "next-auth/providers/naver";
+import CredentialsProvider from "next-auth/providers/credentials"
 import {hashPassword, verifyPassword} from "@/lib/password";
 
 // sns 로그인 시 user_map을 통한 public user 정보 연게
@@ -44,6 +46,7 @@ export const authOptions = {
   }),
 
   providers: [
+    // 구글 프로바이더
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -52,6 +55,16 @@ export const authOptions = {
           prompt: 'consent' // 사용자에게 항상 동의 화면을 표시하도록 강제
         }
       }
+    }),
+    // 카카오 프로바이더
+    KakaoProvider({
+      clientId: process.env.KAKAO_CLIENT_ID!,
+      clientSecret: process.env.KAKAO_CLIENT_SECRET!
+    }),
+    // 네이버 프로바이더
+    NaverProvider({
+      clientId: process.env.NAVER_CLIENT_ID!,
+      clientSecret: process.env.NAVER_CLIENT_SECRET!
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -131,7 +144,12 @@ export const authOptions = {
       if (account?.provider === "google") {
         console.log("Google OAuth 로그인 성공:", user.email)
       }
-
+      if (account?.provider === "kakao") {
+        console.log("Kakao OAuth 로그인 성공:", user.email)
+      }
+      if (account?.provider === "naver") {
+        console.log("Naver OAuth 로그인 성공:", user.email)
+      }
       if (account?.provider === "credentials") {
         console.log("Credentials 로그인 시도:", user.email)
       }

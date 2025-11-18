@@ -3,6 +3,10 @@ import {supabase} from "@/lib/supabaseClient";
 import {hashToken} from "@/lib/token";
 import {hashPassword} from "@/lib/password";
 
+/**
+ * [POST] /api/user/reset-password
+ * 비밀번호 재설정
+ */
 export async function POST(req: Request) {
   try {
     const { token, newPassword } = await req.json()

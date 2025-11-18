@@ -3,6 +3,10 @@ import {sendPasswordResetMail} from '@/lib/mail'
 import {generateRawToken, hashToken} from "@/lib/token";
 import {supabaseAdmin} from "@/lib/supabaseAdmin";
 
+/**
+ * [POST] /api/user/request-reset
+ * 비밀번호 재설정을 위한 이메일 전송
+ */
 export async function POST(req: Request) {
   try {
     const {email} = await req.json()
