@@ -211,3 +211,46 @@ html, body {
 .navIconText { font-size: 1.25rem; line-height: 1; }
 .navText { font-size: 0.75rem; margin-top: 0.125rem; }
 
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 3rem;
+  text-align: center;
+}
+
+.emptyIllustration {
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyIllustration img {
+  filter: grayscale(100%);
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.emptySubtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0 0 0.25rem 0;
+}
+
+.emptyDescription {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+

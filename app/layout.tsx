@@ -29,7 +29,6 @@ export default function RootLayout({
         <ConfirmProvider>
           <div className="flex flex-col w-full min-h-screen md:justify-center md:items-center md:bg-page">
             <article className="w-full flex-grow z-10 md:max-w-[600px] md:h-screen md:shadow-[0_0_20px_rgba(0,0,0,0.1)]">
-              <Header/>
               {children}
             </article>
           </div>
