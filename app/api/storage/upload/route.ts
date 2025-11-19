@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   // 파일 확장자와 경로 설정
   const ext = file.name.split('.').pop(); // 확장자 추출
-  const key = `profile/${user.id}.${ext}`; // 고정 파일명
+  const key = `profile/${user.id}.${ext}?v=${Date.now()}`; // 고정 파일명(캐시 무효화용 timestamp 추가)
 
   const buffer = Buffer.from(await file.arrayBuffer());
 

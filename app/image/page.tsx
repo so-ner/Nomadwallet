@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 
-import { apiFetch } from '@/lib/api/fetch';
-
 type ProfileState = 'basic' | 'upload';
 
 async function changeProfile({
@@ -25,40 +23,51 @@ async function changeProfile({
     formData.append('file', file);
 
     // R2 업로드
-    const res = await apiFetch('/api/storage/upload', {
+    const uploadRes= await fetch('/api/storage/upload', {
       method: 'POST',
       body: formData
     }).then((r) => r.json());
 
+    const newKey = uploadRes.key;
+    if (!newKey) throw new Error("업로드 실패");
+
     // Supabase에 url 저장
-    const response = await apiFetch('/api/storage/save', {
+    const response = await fetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key: res.key, isBasic: false }),
+      body: JSON.stringify({ key: newKey, isBasic: false }),
     });
+
     return response.json();
   } else if (from === 'upload' && to === 'basic') {
+    if (!currentKey) throw new Error("현재 키가 필요합니다.");
+    const randomBasic = Math.floor(Math.random() * 2) + 1; // 1 또는 2
+    const newBasicKey = `${randomBasic}.jpg`;
+
     // 업로드 → 기본 (랜덤하게)
-    if (currentKey) {
-      await apiFetch('/api/storage/delete', {
+    await fetch('/api/storage/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ key: currentKey }),
+        body: JSON.stringify({
+          old_key: currentKey,
+          new_key: newBasicKey,
+          new_is_basic: true,
+          type: "PROFILE_REPLACE",
+        }),
       });
-    }
 
-    const randomBasic = Math.floor(Math.random() * 3) + 1; // 1, 2, 또는 3
-    const response = await apiFetch('/api/storage/save', {
+    const response = await fetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key: `${randomBasic}.jpg`, isBasic: true }),
+      body: JSON.stringify({ key: newBasicKey, isBasic: true }),
     });
+
     return response.json();
   } else if (from === 'upload' && to === 'upload') {
     // 업로드 → 업로드
@@ -68,28 +77,38 @@ async function changeProfile({
     const formData = new FormData();
     formData.append('file', file);
 
-    await apiFetch('/api/storage/delete', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ key: currentKey }),
-    });
-
     // R2 업로드
-    const res = await apiFetch('/api/storage/upload', {
+    const uploadRes = await fetch('/api/storage/upload', {
       method: 'POST',
       body: formData
     }).then((r) => r.json());
 
+    const newKey = uploadRes.key;
+    if (!newKey) throw new Error("업로드 실패");
+
     // Supabase에 url 업데이트
-    const response = await apiFetch('/api/storage/save', {
+    const response = await fetch('/api/storage/save', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ key: res.key, isBasic: false }),
+      body: JSON.stringify({ key: newKey, isBasic: false }),
     });
+
+    // MQ에 삭제 요청
+    await fetch('/api/storage/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        old_key: currentKey,
+        new_key: newKey,
+        new_is_basic: false,
+        type: "PROFILE_REPLACE",
+      }),
+    });
+
     return response.json();
   }
 }
