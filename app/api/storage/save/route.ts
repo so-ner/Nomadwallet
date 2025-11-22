@@ -17,8 +17,9 @@ export async function POST(req: Request) {
       return new Response('Missing image key', {status: 400});
     }
 
-    // 업로드 프로필 일 시 캐시 무효화용 timestamp 추가
-    const imageUrl = isBasic ? `basic/${key}` : `${key}?v=${Date.now()}`;
+    // isBasic의 경우 key: ${randomBasic}.jpg
+    // 아닐 경우 key: profile/${user.id}.${ext}?v=${Date.now()}
+    const imageUrl = isBasic ? `basic/${key}` : `${key}`;
 
     const {error} = await supabaseAdmin
       .from('users')

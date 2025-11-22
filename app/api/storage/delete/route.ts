@@ -1,29 +1,35 @@
-import {DeleteObjectCommand, S3Client} from '@aws-sdk/client-s3';
-import {requireAuth} from '@/lib/auth';
-import {r2Client} from "@/lib/r2Client";
+import {NextResponse} from "next/server";
+import {requireAuth} from "@/lib/auth";
 
 /**
- * [DELETE] /api/storage/delete
- * R2 삭제
+ * [POST] /api/storage/delete
+ * fastAPI에 R2 삭제 요청
  */
-export async function DELETE(req: Request) {
+const DELETE_SERVICE_URL = process.env.NOMAD_PYTHON_SERVICE_URL ?? 'http://r2-delete-api:8000';
+
+export async function POST(req: Request) {
+  const { old_key, new_key, new_is_basic, type } = await req.json();
+
   const user = await requireAuth();
   if ('status' in user) return user;
 
-  let {key} = await req.json();
-  if (!key) return new Response('Missing key', {status: 400});
-  if (key.includes("?v=")) key = key.split("?v=")[0]; // 캐시 무효화용 timestamp 제거
+  const payload = {
+    user_id: user.id,
+    old_key,
+    new_key,
+    new_is_basic,
+    type: type ?? "PROFILE_REPLACE",
+  };
 
-  try {
-    await r2Client.send(
-      new DeleteObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME!,
-        Key: key,
-      })
-    );
-    return Response.json({success: true});
-  } catch (err) {
-    console.error('R2 삭제 실패:', err);
-    return new Response('Delete failed', {status: 500});
+  const res = await fetch(`${DELETE_SERVICE_URL}/images/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    return NextResponse.json({ error: "enqueue failed" }, { status: 500 });
   }
+
+  return NextResponse.json({ ok: true });
 }
