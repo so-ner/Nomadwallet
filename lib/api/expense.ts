@@ -46,13 +46,17 @@ function generateDummyExpenses(): Expense[] {
       expenses.push({
         expense_id: expenseId++,
         user_id: 1,
-        travel_id: null,
+        travel_id: null as any,
         amount,
         currency: CurrencyCode.KRW,
         exchange_rate: null,
         category,
         expense_date: formatDate(expenseDate),
-      });
+        type: 'EXPENSE' as const,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        memo: null,
+      } as Expense);
     }
   }
   
@@ -78,13 +82,17 @@ export async function getExpense(expenseId: number): Promise<ApiGetExpenseRespon
     expense = {
       expense_id: expenseId,
       user_id: 1,
-      travel_id: null,
+      travel_id: null as any,
       amount: 15000,
       currency: CurrencyCode.KRW,
       exchange_rate: null,
       category: ExpenseCategory.FOOD,
       expense_date: new Date().toISOString().slice(0, 10),
-    };
+      type: 'EXPENSE' as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      memo: null,
+    } as Expense;
   }
   
   return { expense };
@@ -99,13 +107,17 @@ export async function updateExpense(expenseId: number, data: PutExpenseRequest):
   const updatedExpense: Expense = {
     expense_id: expenseId,
     user_id: 1,
-    travel_id: null,
+    travel_id: null as any,
     amount: data.amount,
     currency: data.currency,
     exchange_rate: data.exchange_rate ?? null,
     category: data.category,
     expense_date: data.expense_date,
-  };
+    type: 'EXPENSE' as const,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    memo: null,
+  } as Expense;
   return { expense: updatedExpense };
 }
 

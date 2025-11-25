@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useMemo, useState, useEffect} from 'react';
+import React, {useMemo, useState, useEffect, Suspense} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {signIn} from 'next-auth/react';
 import Button from '@/component/Button';
@@ -69,7 +69,7 @@ function CheckIcon({checked}: { checked: boolean }) {
   );
 }
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const forcedStep = searchParams.get('step');
@@ -509,5 +509,13 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-col items-center min-h-screen w-full px-5 py-8 bg-white">로딩중...</div>}>
+      <SignUpPageContent />
+    </Suspense>
   );
 }

@@ -36,7 +36,7 @@ export default function InputField({
   // value prop이 변경될 때 내부 state 동기화
   useEffect(() => {
     if (value !== undefined) {
-      setInputValue(value);
+      setInputValue(String(value));
     }
   }, [value]);
 
@@ -134,7 +134,7 @@ export default function InputField({
                 textAlign: 'center',
               }}
             >
-              {inputValue.length}
+              {String(inputValue).length}
             </div>
           )}
 

@@ -191,7 +191,7 @@ export default function PermissionsPage() {
     // 알림 권한 요청
     if (missingPermissions.includes('notification') && permissionStatus.notification !== 'granted') {
       if ('Notification' in window && Notification.permission === 'default') {
-        requests.push(Notification.request().then(() => undefined));
+        requests.push(Notification.requestPermission().then(() => undefined));
       }
     }
 

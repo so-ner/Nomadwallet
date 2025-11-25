@@ -8,7 +8,7 @@ import {supabaseAdmin} from "@/lib/supabaseAdmin";
  */
 export async function PUT(
   req: Request,
-  context: { params: Promise<{ sub_id: number }> }
+  context: { params: Promise<{ sub_id: string }> }
 ) {
   try {
     const subId = (await context.params).sub_id;
@@ -46,7 +46,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ sub_id: number }> }
+  context: { params: Promise<{ sub_id: string }> }
 ) {
   try {
     const subId = (await context.params).sub_id;

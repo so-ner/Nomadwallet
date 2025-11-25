@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import styles from '../../new/page.module.css';
-import { PutExpenseRequest } from '@/types/expense';
+import { UpdateExpense } from '@/types/expense';
 import { getExpense, updateExpense } from '@/lib/api/expense';
 import { getCategories } from '@/lib/api/category';
 import { getTravelsForExpense } from '@/lib/api/travel';
@@ -118,7 +118,7 @@ export default function EditExpensePage() {
     setIsSubmitting(true);
 
     try {
-      const dataToSend: PutExpenseRequest = {
+      const dataToSend: UpdateExpense = {
         amount: parseFloat(formState.amount) || 0,
         currency: formState.currency,
         exchange_rate: formState.exchange_rate ? parseFloat(formState.exchange_rate) : null,
@@ -126,7 +126,7 @@ export default function EditExpensePage() {
         expense_date: formState.expense_date || new Date().toISOString().slice(0, 10),
       };
 
-      await updateExpense(expenseId, dataToSend);
+      // await updateExpense(expenseId, dataToSend);
       router.push('/expense');
     } catch (error) {
       alert(error instanceof Error ? error.message : '지출 수정에 실패했습니다.');

@@ -37,8 +37,8 @@ export default function SessionRedirect() {
       router.replace('/signup?step=4');
     } else if (session.user.is_onboarded === true) {
       // 온보딩이 완료된 경우 홈으로 이동 (이미 홈에 있으면 리다이렉트하지 않음)
-      if (pathname !== '/home' && pathname !== '/expense' && pathname !== '/budget') {
-        router.replace('/home');
+      if (pathname !== '/expense' && pathname !== '/budget') {
+        router.replace('/expense');
       }
     }
   }, [session, pathname, router]);

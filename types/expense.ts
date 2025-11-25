@@ -58,22 +58,22 @@ export interface GetExpensesRequest {
   category_major?: CategoryMajor
 }
 
-// export interface PostExpenseRequest {
-//   travel_id?: number | null;
-//   amount: number;
-//   currency: number; // CurrencyCode
-//   exchange_rate?: number | null;
-//   category: string; // ExpenseCategory
-//   expense_date: string; // YYYY-MM-DD
-// }
-//
-// export interface PutExpenseRequest {
-//   amount: number;
-//   currency: number; // CurrencyCode
-//   exchange_rate?: number | null;
-//   category: string; // ExpenseCategory
-//   expense_date: string; // YYYY-MM-DD
-// }
+export interface PostExpenseRequest {
+  travel_id?: number | null;
+  amount: number;
+  currency: number; // CurrencyCode
+  exchange_rate?: number | null;
+  category: string; // ExpenseCategory
+  expense_date: string; // YYYY-MM-DD
+}
+
+export interface PutExpenseRequest {
+  amount: number;
+  currency: number; // CurrencyCode
+  exchange_rate?: number | null;
+  category: string; // ExpenseCategory
+  expense_date: string; // YYYY-MM-DD
+}
 
 // =========================
 // API Response Types

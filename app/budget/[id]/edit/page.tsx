@@ -105,17 +105,17 @@ export default function EditBudgetPage() {
     let mounted = true;
     const load = async () => {
       try {
-        const { data } = await getTravel(travelId);
-        if (mounted && data) {
+        const { travel } = await getTravel(travelId);
+        if (mounted && travel) {
           setFormState({
-            travelType: data.currency === 1 ? 'domestic' : 'international',
-            travelTitle: data.travel_title,
-            startDate: data.start_date,
-            endDate: data.end_date,
-            totalBudget: String(data.total_budget ?? ''),
-            currencyCode: data.currency ?? 1,
-            warnType: (data as any).warn_type ?? '',
-            warnDetailCond: (data as any).warn_detail_cond ?? '',
+            travelType: travel.currency === 1 ? 'domestic' : 'international',
+            travelTitle: travel.travel_title,
+            startDate: travel.start_date,
+            endDate: travel.end_date,
+            totalBudget: String(travel.total_budget ?? ''),
+            currencyCode: travel.currency ?? 1,
+            warnType: (travel as any).warn_type ?? '',
+            warnDetailCond: (travel as any).warn_detail_cond ?? '',
           });
         }
       } finally {

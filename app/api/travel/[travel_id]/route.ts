@@ -10,7 +10,7 @@ import {ApiDeleteTravelResponse, ApiGetTravelResponse, ApiUpdateTravelResponse, 
  */
 export async function GET(
   req: Request,
-  context: { params: Promise<{ travel_id: number }> }
+  context: { params: Promise<{ travel_id: string }> }
 ) {
   const {travel_id} = await context.params;
   if (!travel_id) {
@@ -38,7 +38,7 @@ export async function GET(
  */
 export async function PATCH(
   req: Request,
-  context: { params: Promise<{ travel_id: number }> }
+  context: { params: Promise<{ travel_id: string }> }
 ) {
   try {
     const travelId = (await context.params).travel_id;
@@ -78,7 +78,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ travel_id: number }> }
+  context: { params: Promise<{ travel_id: string }> }
 ) {
   try {
     const travelId = (await context.params).travel_id;

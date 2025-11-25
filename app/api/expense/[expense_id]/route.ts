@@ -15,7 +15,7 @@ import {
  */
 export async function GET(
   req: Request,
-  context: { params: Promise<{ expense_id: number }> }
+  context: { params: Promise<{ expense_id: string }> }
 ) {
   const {expense_id} = await context.params;
   if (!expense_id) {
@@ -48,7 +48,7 @@ export async function GET(
  */
 export async function PUT(
   req: Request,
-  context: { params: Promise<{ expense_id: number }> }
+  context: { params: Promise<{ expense_id: string }> }
 ) {
   try {
     const expenseId = (await context.params).expense_id;
@@ -88,7 +88,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ expense_id: number }> }
+  context: { params: Promise<{ expense_id: string }> }
 ) {
   try {
     const expenseId = (await context.params).expense_id;

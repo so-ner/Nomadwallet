@@ -27,8 +27,9 @@ function generateDummyTravels(): Travel[] {
       warn_type: 'amount',
       warn_detail_cond: '10000',
       currency: CurrencyCode.KRW,
-      expense: [],
-      total_spent: 0,
+      user_id: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     },
     {
       travel_id: 2,
@@ -39,8 +40,9 @@ function generateDummyTravels(): Travel[] {
       warn_type: 'percent',
       warn_detail_cond: '80',
       currency: CurrencyCode.JPY,
-      expense: [],
-      total_spent: 0,
+      user_id: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     },
     {
       travel_id: 3,
@@ -51,10 +53,11 @@ function generateDummyTravels(): Travel[] {
       warn_type: 'amount',
       warn_detail_cond: '50000',
       currency: CurrencyCode.USD,
-      expense: [],
-      total_spent: 0,
+      user_id: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     },
-  ];
+  ] as Travel[];
 }
 
 import { apiFetch } from './fetch';

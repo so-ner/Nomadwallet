@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './page.module.css';
-import { PostExpenseRequest } from '@/types/expense';
+import { UpdateExpense } from '@/types/expense';
 import { createExpense } from '@/lib/api/expense';
 import { getCategories } from '@/lib/api/category';
 import { getTravelsForExpense } from '@/lib/api/travel';
@@ -27,7 +27,7 @@ const CURRENCY_OPTIONS = [
   { code: CurrencyCode.USD, name: '달러 (USD)', symbol: 'USD' },
 ];
 
-export default function AddExpensePage() {
+function AddExpensePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dateParam = searchParams.get('date');
@@ -108,8 +108,10 @@ export default function AddExpensePage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (!formState.travel_id) return;
+
     try {
-      const dataToSend: PostExpenseRequest = {
+      const dataToSend: UpdateExpense = {
         travel_id: formState.travel_id,
         amount: parseFloat(formState.amount) || 0,
         currency: formState.currency,
@@ -118,7 +120,7 @@ export default function AddExpensePage() {
         expense_date: formState.expense_date || new Date().toISOString().slice(0, 10),
       };
 
-      await createExpense(dataToSend);
+      // await createExpense(dataToSend);
       router.push('/expense');
     } catch (error) {
       alert(error instanceof Error ? error.message : '지출 추가에 실패했습니다.');
@@ -282,6 +284,14 @@ export default function AddExpensePage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function AddExpensePage() {
+  return (
+    <Suspense fallback={<div className={styles.container}>로딩중...</div>}>
+      <AddExpensePageContent />
+    </Suspense>
   );
 }
 
