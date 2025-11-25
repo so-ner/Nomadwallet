@@ -65,38 +65,29 @@ function generateDummyExpenses(): Expense[] {
 }
 
 export async function getExpenses(params: GetExpensesRequest): Promise<ApiGetExpensesResponse> {
-  const dummyExpenses = generateDummyExpenses();
-  
-  const filtered = dummyExpenses.filter((exp) => {
-    const date = new Date(exp.expense_date);
-    return date.getFullYear() === params.year && date.getMonth() + 1 === params.month;
+  const response = await fetch(`/api/expense?year=${params.year}&month=${params.month}`, {
+    method: 'GET',
   });
 
-  return { expenses: filtered };
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '지출 목록 조회에 실패했습니다.');
+  }
+
+  return await response.json();
 }
 
 export async function getExpense(expenseId: number): Promise<ApiGetExpenseResponse> {
-  const dummyExpenses = generateDummyExpenses();
-  let expense = dummyExpenses.find((e) => e.expense_id === expenseId);
-  
-  if (!expense) {
-    expense = {
-      expense_id: expenseId,
-      user_id: 1,
-      travel_id: null as any,
-      amount: 15000,
-      currency: CurrencyCode.KRW,
-      exchange_rate: null,
-      category: ExpenseCategory.FOOD,
-      expense_date: new Date().toISOString().slice(0, 10),
-      type: 'EXPENSE' as const,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      memo: null,
-    } as Expense;
+  const response = await fetch(`/api/expense/${expenseId}`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '지출 조회에 실패했습니다.');
   }
-  
-  return { expense };
+
+  return await response.json();
 }
 
 export async function createExpense(data: Omit<InsertExpense, 'user_id' | 'created_at' | 'updated_at' | 'expense_id'>): Promise<ApiCreateExpenseResponse> {
@@ -117,23 +108,31 @@ export async function createExpense(data: Omit<InsertExpense, 'user_id' | 'creat
 }
 
 export async function updateExpense(expenseId: number, data: PutExpenseRequest): Promise<ApiUpdateExpenseResponse> {
-  const updatedExpense: Expense = {
-    expense_id: expenseId,
-    user_id: 1,
-    travel_id: null as any,
-    amount: data.amount,
-    currency: data.currency,
-    exchange_rate: data.exchange_rate ?? null,
-    category: data.category,
-    expense_date: data.expense_date,
-    type: 'EXPENSE' as const,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    memo: null,
-  } as Expense;
-  return { expense: updatedExpense };
+  const response = await fetch(`/api/expense/${expenseId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '지출 수정에 실패했습니다.');
+  }
+
+  return await response.json();
 }
 
 export async function deleteExpense(expenseId: number): Promise<ApiDeleteExpenseResponse> {
-  return { success: true };
+  const response = await fetch(`/api/expense/${expenseId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '지출 삭제에 실패했습니다.');
+  }
+
+  return await response.json();
 }

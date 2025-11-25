@@ -46,7 +46,7 @@ function AddExpensePageContent() {
   const [formState, setFormState] = useState<ExpenseFormState>({
     amount: '',
     expenseType: 'EXPENSE',
-    currency: 756, // CHF 기본값
+    currency: 0, // 초기값: 선택 안된 상태
     travel_id: travelIdParam ? Number(travelIdParam) : null,
     category: '',
     categorySubId: null,
@@ -60,6 +60,8 @@ function AddExpensePageContent() {
   const [isTravelSheetOpen, setIsTravelSheetOpen] = useState(false);
   const [selectedTravel, setSelectedTravel] = useState<Travel | null>(null);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
+  const [isCalculatingExchange, setIsCalculatingExchange] = useState(false);
   
   // 카테고리 관련 상태
   const [isCategoryMajorSheetOpen, setIsCategoryMajorSheetOpen] = useState(false);
@@ -125,8 +127,14 @@ function AddExpensePageContent() {
     setFormState((prev) => ({ ...prev, expenseType: type }));
   };
 
-  const handleCurrencyChange = (currencyNumber: number) => {
+  const handleCurrencyChange = async (currencyNumber: number) => {
     setFormState((prev) => ({ ...prev, currency: currencyNumber }));
+    setIsCurrencySheetOpen(false);
+    
+    // 통화 선택 시 금액이 있으면 즉시 환율 계산
+    if (formState.amount && parseFloat(formState.amount) > 0) {
+      await calculateExchangeRate(parseFloat(formState.amount), currencyNumber);
+    }
   };
 
   const handleDateSelect = (date: string) => {
@@ -247,53 +255,60 @@ function AddExpensePageContent() {
     }
   }, [returnToParam]);
 
-  // 환율 계산 (금액 작성되고 통화 선택이 되면 자동으로 환율 API 호출)
-  useEffect(() => {
-    const calculateRate = async () => {
-      // KRW이면 환율 계산 불필요
-      if (formState.currency === CurrencyCode.KRW) {
-        setExchangeRate(null);
-        return;
-      }
+  // 환율 계산 함수
+  const calculateExchangeRate = async (amount: number, currencyNumber: number) => {
+    // 통화가 선택되지 않았거나 KRW이면 환율 계산 불필요
+    if (!currencyNumber || currencyNumber === CurrencyCode.KRW) {
+      setExchangeRate(null);
+      setConvertedAmount(null);
+      return;
+    }
 
-      // 금액이 없으면 계산하지 않음
-      if (!formState.amount || parseFloat(formState.amount) <= 0) {
-        setExchangeRate(null);
-        return;
-      }
+    // 금액이 없으면 계산하지 않음
+    if (!amount || amount <= 0) {
+      setExchangeRate(null);
+      setConvertedAmount(null);
+      return;
+    }
 
-      // 통화 코드가 없으면 계산하지 않음
-      const currency = selectedCurrency?.currency_code?.toLowerCase();
-      if (!currency) {
-        setExchangeRate(null);
-        return;
-      }
+    // 선택된 통화 정보 찾기
+    const currency = availableCurrencies.find(c => c.currency_number === currencyNumber);
+    const currencyCode = currency?.currency_code?.toLowerCase();
+    if (!currencyCode) {
+      setExchangeRate(null);
+      setConvertedAmount(null);
+      return;
+    }
 
-      // 날짜가 없으면 오늘 날짜를 기본값으로 사용
-      const dateToUse = formState.expense_date || dayjs().format('YYYY-MM-DD');
+    // 날짜가 없으면 오늘 날짜를 기본값으로 사용
+    const dateToUse = formState.expense_date || dayjs().format('YYYY-MM-DD');
 
-      try {
-        const result = await calculateExchange(
-          parseFloat(formState.amount),
-          currency,
-          dateToUse
-        );
-        
-        // rate는 1원당 환율이므로 그대로 사용
-        setExchangeRate(result.rate);
-      } catch (error) {
-        console.error('환율 계산 실패:', error);
-        setExchangeRate(null);
-      }
-    };
+    setIsCalculatingExchange(true);
+    try {
+      const result = await calculateExchange(
+        amount,
+        currencyCode,
+        dateToUse
+      );
+      
+      // rate는 1원당 환율이므로 그대로 사용
+      setExchangeRate(result.rate);
+      setConvertedAmount(result.converted);
+    } catch (error) {
+      console.error('환율 계산 실패:', error);
+      setExchangeRate(null);
+      setConvertedAmount(null);
+    } finally {
+      setIsCalculatingExchange(false);
+    }
+  };
 
-    // 디바운싱: 입력이 끝난 후에만 API 호출
-    const timeoutId = setTimeout(() => {
-      calculateRate();
-    }, 500); // 500ms 대기
-
-    return () => clearTimeout(timeoutId);
-  }, [formState.currency, formState.amount, selectedCurrency, formState.expense_date]);
+  // 금액 입력 포커스 아웃 시 환율 계산
+  const handleAmountBlur = async () => {
+    if (formState.amount && formState.currency && formState.currency !== CurrencyCode.KRW) {
+      await calculateExchangeRate(parseFloat(formState.amount), formState.currency);
+    }
+  };
 
   const formattedAmount = formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : '';
   const formattedDate = formState.expense_date 
@@ -310,7 +325,7 @@ function AddExpensePageContent() {
       formState.memo ||
       formState.travel_id ||
       formState.expenseType !== 'EXPENSE' ||
-      formState.currency !== 756 // 기본값이 아닌 경우
+      formState.currency !== 0 // 기본값이 아닌 경우
     );
   }, [formState]);
 
@@ -360,6 +375,11 @@ function AddExpensePageContent() {
 
       // InsertExpense 타입에 맞게 데이터 변환
       // API 기준으로 매핑: form에 없으면 더미데이터, form에 있지만 API에 없으면 생략
+      // 통화가 선택되지 않았거나 KRW이면 환율 계산 필요 없음
+      const finalExchangeRate = (formState.currency && formState.currency !== CurrencyCode.KRW && exchangeRate) 
+        ? exchangeRate 
+        : null;
+      
       const dataToSend: Omit<InsertExpense, 'user_id' | 'created_at' | 'updated_at' | 'expense_id'> = {
         amount: parseFloat(formState.amount) || 0,
         category: formState.category,
@@ -367,7 +387,7 @@ function AddExpensePageContent() {
         expense_date: formState.expense_date,
         travel_id: formState.travel_id || 0, // form에 없으면 더미데이터 0
         type: formState.expenseType, // expenseType -> type 매핑
-        exchange_rate: exchangeRate || null, // 계산된 환율 값 (1원당 환율)
+        exchange_rate: finalExchangeRate, // 계산된 환율 값 (1원당 환율)
         memo: formState.memo || null,
       };
 
@@ -389,17 +409,35 @@ function AddExpensePageContent() {
       
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">
         {/* 금액 */}
-        <div className="p-[20px]">
-          <input
-            ref={amountInputRef}
-            name="amount"
-            type="text"
-            inputMode="numeric"
-            className="w-full text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400"
-            placeholder="금액"
-            value={formattedAmount}
-            onChange={handleAmountChange}
-          />
+        <div className="px-[20px] pt-[20px] pb-[11px] flex gap-[18px] items-center">
+          <div className="inline-flex items-center gap-[8px]">
+            <input
+              ref={amountInputRef}
+              name="amount"
+              type="text"
+              inputMode="numeric"
+              className="text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400 w-fit min-w-[60px]"
+              placeholder="금액"
+              value={formattedAmount}
+              onChange={handleAmountChange}
+              onBlur={handleAmountBlur}
+            />
+            {selectedCurrency && (
+              <span className="text-body-1 text-text-primary whitespace-nowrap">
+                {selectedCurrency.currency_code}
+              </span>
+            )}
+          </div>
+          {convertedAmount !== null && exchangeRate !== null && (
+            <div className="flex flex-col gap-[7px] flex-1">
+              <div className="text-headline-5 font-semibold text-[18px] text-text-primary">
+                {Math.round(convertedAmount).toLocaleString('ko-KR')}원
+              </div>
+              <div className="text-caption-2 font-medium text-[12px] text-grayscale-600">
+                현재 환율을 기준으로 표시된 금액입니다.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 분류 */}
@@ -439,8 +477,8 @@ function AddExpensePageContent() {
             onClick={() => setIsCurrencySheetOpen(true)}
             className="w-full px-4 py-3 border-none rounded-lg flex items-center justify-between bg-white"
           >
-            <span className={selectedCurrency ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
-              {selectedCurrency?.currency_name || '선택해주세요'}
+            <span className={formState.currency && selectedCurrency ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
+              {formState.currency && selectedCurrency ? selectedCurrency.currency_name : '선택해주세요'}
             </span>
             <Image
               src="/icons/icon-arrow_right-24.svg"
