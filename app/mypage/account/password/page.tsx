@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 // TODO: 비밀번호 변경 API 구현 후 import 활성화
 // import { changePassword } from '@/lib/api/user';
 import { useToast } from '@/context/ToastContext';
@@ -142,7 +143,7 @@ export default function PasswordChangePage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<span>←</span>}
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="비밀번호 재설정"
         onLeftClick={handleBack}
       />

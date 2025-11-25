@@ -8,6 +8,7 @@ import {
   ApiUpdateExpenseResponse,
   ApiDeleteExpenseResponse,
   Expense,
+  InsertExpense,
 } from '@/types/expense';
 import { ExpenseCategory } from '@/types/expense';
 import { CurrencyCode } from '@/types/travel';
@@ -98,9 +99,21 @@ export async function getExpense(expenseId: number): Promise<ApiGetExpenseRespon
   return { expense };
 }
 
-export async function createExpense(data: PostExpenseRequest): Promise<ApiCreateExpenseResponse> {
-  const expenseId = Date.now();
-  return { success: true, expense_id: expenseId };
+export async function createExpense(data: Omit<InsertExpense, 'user_id' | 'created_at' | 'updated_at' | 'expense_id'>): Promise<ApiCreateExpenseResponse> {
+  const response = await fetch('/api/expense', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '지출 생성에 실패했습니다.');
+  }
+
+  return await response.json();
 }
 
 export async function updateExpense(expenseId: number, data: PutExpenseRequest): Promise<ApiUpdateExpenseResponse> {

@@ -1,3 +1,6 @@
+import { CategorySub, CategoryMajor, InsertCategorySub } from '@/types/expense';
+import { apiFetch } from './fetch';
+
 export interface Category {
   id: string;
   name: string;
@@ -20,4 +23,58 @@ export async function getCategories(): Promise<ApiGetCategoriesResponse> {
   ];
 
   return { categories };
+}
+
+// 소분류 카테고리 API
+export async function getCategorySubs(major: CategoryMajor): Promise<CategorySub[]> {
+  const res = await apiFetch(`/api/category/sub?major=${major}`, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error('소분류 카테고리 조회에 실패했습니다.');
+  }
+  return res.json();
+}
+
+export async function createCategorySub(data: Omit<InsertCategorySub, 'user_id' | 'created_at' | 'updated_at' | 'sub_id'>): Promise<CategorySub[]> {
+  const res = await apiFetch('/api/category/sub', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: '소분류 카테고리 추가에 실패했습니다.' }));
+    throw new Error(error.error || '소분류 카테고리 추가에 실패했습니다.');
+  }
+
+  return res.json();
+}
+
+export async function updateCategorySub(subId: number, subName: string): Promise<CategorySub[]> {
+  const res = await apiFetch(`/api/category/sub/${subId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ sub_name: subName }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: '소분류 카테고리 수정에 실패했습니다.' }));
+    throw new Error(error.error || '소분류 카테고리 수정에 실패했습니다.');
+  }
+
+  return res.json();
+}
+
+export async function deleteCategorySub(subId: number): Promise<void> {
+  const res = await apiFetch(`/api/category/sub/${subId}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: '소분류 카테고리 삭제에 실패했습니다.' }));
+    throw new Error(error.error || '소분류 카테고리 삭제에 실패했습니다.');
+  }
 }

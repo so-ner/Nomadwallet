@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import TopAreaSub from '@/component/top_area/TopAreaSub';
@@ -30,6 +30,8 @@ interface TravelFormState {
 
 export default function AddBudgetPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
   const [formState, setFormState] = useState<TravelFormState>({
     travelType: 'international',
     travelTitle: '',
@@ -179,8 +181,19 @@ export default function AddBudgetPage() {
         dataToSend.warn_detail_cond = '0';
       }
 
-      await createTravel(dataToSend);
-      router.push('/budget');
+      const response = await createTravel(dataToSend);
+      
+      // API 응답이 배열인 경우 첫 번째 항목 사용
+      const createdTravel = Array.isArray(response.travel) ? response.travel[0] : response.travel;
+      
+      // 분기 처리: returnTo 파라미터에 따라 이동 경로 결정
+      if (returnTo === 'expense/new') {
+        // expense/new에서 왔으면 원래 페이지로 돌아가고 바텀시트가 열리도록
+        router.replace(`/expense/new?returnTo=expense/new&travel_id=${createdTravel.travel_id}`);
+      } else {
+        // 예산 페이지에서 왔으면 상세 페이지로 이동 (replace로 변경하여 뒤로가기 시 추가 페이지로 가지 않도록)
+        router.replace(`/budget/${createdTravel.travel_id}`);
+      }
     } catch (error) {
       alert(error instanceof Error ? error.message : '예산 추가에 실패했습니다.');
       setIsSubmitting(false);
@@ -196,7 +209,7 @@ export default function AddBudgetPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<span>←</span>}
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="예산 추가"
         onLeftClick={() => router.back()}
       />

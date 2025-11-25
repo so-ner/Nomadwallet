@@ -19,13 +19,18 @@ export type UpdateExpense = Database['public']['Tables']['expense']['Update']
 export type CategoryMajor = Database['public']['Enums']['category_major']
 export type TransactionType = Database['public']['Enums']['transaction_type']
 
+// Category Sub Types
+export type CategorySub = Database['public']['Tables']['category_sub']['Row']
+export type InsertCategorySub = Database['public']['Tables']['category_sub']['Insert']
+export type UpdateCategorySub = Database['public']['Tables']['category_sub']['Update']
+
 // React Select에서 사용할 옵션 형식
 export const categoryOptions: { label: string; value: CategoryMajor }[] = [
+  {label: '식비', value: 'FOOD'},
   {label: '주거비', value: 'HOUSING'},
   {label: '고정비', value: 'FIXED'},
-  {label: '저축/투자비', value: 'SAVINGS_INVESTMENT'},
+  {label: '저축/투자', value: 'SAVINGS_INVESTMENT'},
   {label: '교통비', value: 'TRANSPORTATION'},
-  {label: '식사비', value: 'FOOD'},
   {label: '생활/쇼핑', value: 'LIVING_SHOPPING'},
   {label: '문화생활', value: 'ENTERTAINMENT'},
   {label: '기타', value: 'OTHERS'},

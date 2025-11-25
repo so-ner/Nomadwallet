@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import TopAreaSub from '@/component/top_area/TopAreaSub';
 import NotificationToggle from '../_component/NotificationToggle';
 import { useToast } from '@/context/ToastContext';
@@ -57,7 +58,7 @@ export default function NotificationPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<span>←</span>}
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="알림"
         onLeftClick={handleBack}
       />

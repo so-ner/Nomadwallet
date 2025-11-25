@@ -1,126 +1,377 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import styles from './page.module.css';
-import { UpdateExpense } from '@/types/expense';
+import Image from 'next/image';
+import Link from 'next/link';
+import TopAreaSub from '@/component/top_area/TopAreaSub';
+import CurrencySelectBottomSheet from '@/component/CurrencySelectBottomSheet';
+import DateSelectBottomSheet from '@/component/DateSelectBottomSheet';
+import TravelSelectBottomSheet from '@/component/TravelSelectBottomSheet';
+import CategoryMajorBottomSheet from '@/component/CategoryMajorBottomSheet';
+import CategorySubBottomSheet from '@/component/CategorySubBottomSheet';
+import CategorySubEditModal from '@/component/CategorySubEditModal';
+import CategorySubInputBottomSheet from '@/component/CategorySubInputBottomSheet';
+import Button from '@/component/Button';
+import { processCurrencyData, getUniqueCurrencies, CurrencyData } from '@/lib/currency';
+import rawCurrencyData from '@/lib/currency-data.json';
+import dayjs from '@/lib/dayjs';
+import { InsertExpense, TransactionType, CategoryMajor, CategorySub } from '@/types/expense';
 import { createExpense } from '@/lib/api/expense';
-import { getCategories } from '@/lib/api/category';
-import { getTravelsForExpense } from '@/lib/api/travel';
-import { getExchangeRate } from '@/lib/api/exchangeRate';
+import { useConfirm } from '@/context/ConfirmContext';
+import { Travel } from '@/types/travel';
+import { getTravels, getTravel } from '@/lib/api/travel';
+import { calculateExchange } from '@/lib/api/exchangeRate';
 import { CurrencyCode } from '@/types/travel';
-import { ExpenseCategory } from '@/types/expense';
 
 interface ExpenseFormState {
-  expense_date: string;
-  category: string;
   amount: string;
-  travel_id: number | null;
+  expenseType: TransactionType; // DB의 'type' 필드로 매핑 필요
   currency: number;
-  exchange_rate: string;
+  travel_id: number | null;
+  category: string; // 선택된 세부 카테고리 이름
+  categorySubId: number | null; // 선택된 세부 카테고리 ID
+  expense_date: string;
   memo: string;
 }
-
-const CURRENCY_OPTIONS = [
-  { code: CurrencyCode.KRW, name: '원화 (KRW)', symbol: 'KRW' },
-  { code: CurrencyCode.JPY, name: '엔화 (JPY)', symbol: 'JPY' },
-  { code: CurrencyCode.USD, name: '달러 (USD)', symbol: 'USD' },
-];
 
 function AddExpensePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dateParam = searchParams.get('date');
   const travelIdParam = searchParams.get('travel_id');
+  const returnToParam = searchParams.get('returnTo');
+  const { showConfirm } = useConfirm();
   
   const [formState, setFormState] = useState<ExpenseFormState>({
-    expense_date: dateParam || '',
-    category: '',
     amount: '',
+    expenseType: 'EXPENSE',
+    currency: 756, // CHF 기본값
     travel_id: travelIdParam ? Number(travelIdParam) : null,
-    currency: CurrencyCode.KRW,
-    exchange_rate: '',
+    category: '',
+    categorySubId: null,
+    expense_date: dateParam || '',
     memo: '',
   });
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [travels, setTravels] = useState<{ travel_id: number; travel_title: string }[]>([]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isCurrencySheetOpen, setIsCurrencySheetOpen] = useState(false);
+  const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
+  const [isTravelSheetOpen, setIsTravelSheetOpen] = useState(false);
+  const [selectedTravel, setSelectedTravel] = useState<Travel | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  
+  // 카테고리 관련 상태
+  const [isCategoryMajorSheetOpen, setIsCategoryMajorSheetOpen] = useState(false);
+  const [isCategorySubSheetOpen, setIsCategorySubSheetOpen] = useState(false);
+  const [isCategoryEditModalOpen, setIsCategoryEditModalOpen] = useState(false);
+  const [isCategoryInputSheetOpen, setIsCategoryInputSheetOpen] = useState(false);
+  const [selectedMajor, setSelectedMajor] = useState<CategoryMajor | null>(null);
+  const [editingSub, setEditingSub] = useState<CategorySub | null>(null);
+  
+  // 필수 필드 refs
+  const amountInputRef = useRef<HTMLInputElement>(null);
+  const categoryButtonRef = useRef<HTMLButtonElement>(null);
+  const dateButtonRef = useRef<HTMLButtonElement>(null);
+  // const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  // const [travels, setTravels] = useState<{ travel_id: number; travel_title: string }[]>([]);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [{ categories: cats }, { travels: travelList }] = await Promise.all([
-          getCategories(),
-          getTravelsForExpense(),
-        ]);
-        setCategories(cats);
-        setTravels(travelList.map((t) => ({ travel_id: t.travel_id, travel_title: t.travel_title })));
-        setFormState((prev) => ({
-          ...prev,
-          expense_date: prev.expense_date || new Date().toISOString().slice(0, 10),
-          travel_id: prev.travel_id || (travelIdParam ? Number(travelIdParam) : null),
-        }));
-      } catch (error) {
-        console.error('데이터 로드 실패:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [travelIdParam]);
+  // 통화 데이터 가공
+  const availableCurrencies = useMemo(() => {
+    const processed = processCurrencyData(rawCurrencyData);
+    return getUniqueCurrencies(processed);
+  }, []);
 
-  useEffect(() => {
-    if (formState.currency !== CurrencyCode.KRW && formState.currency) {
-      const loadRate = async () => {
-        try {
-          const { exchange_rate } = await getExchangeRate(formState.currency);
-          setFormState((prev) => ({ ...prev, exchange_rate: String(exchange_rate.rate) }));
-        } catch (error) {
-          console.error('환율 로드 실패:', error);
-        }
-      };
-      loadRate();
-    } else {
-      setFormState((prev) => ({ ...prev, exchange_rate: '' }));
-    }
-  }, [formState.currency]);
+  // 선택된 통화 정보 찾기
+  const selectedCurrency = useMemo(() => {
+    return availableCurrencies.find(c => c.currency_number === formState.currency);
+  }, [availableCurrencies, formState.currency]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormState((prev) => ({ ...prev, [name]: value }));
-  };
+  // useEffect(() => {
+  //   const load = async () => {
+  //     try {
+  //       const [{ categories: cats }, { travels: travelList }] = await Promise.all([
+  //         getCategories(),
+  //         getTravelsForExpense(),
+  //       ]);
+  //       setCategories(cats);
+  //       setTravels(travelList.map((t) => ({ travel_id: t.travel_id, travel_title: t.travel_title })));
+  //       setFormState((prev) => ({
+  //         ...prev,
+  //         expense_date: prev.expense_date || new Date().toISOString().slice(0, 10),
+  //         travel_id: prev.travel_id || (travelIdParam ? Number(travelIdParam) : null),
+  //       }));
+  //     } catch (error) {
+  //       console.error('데이터 로드 실패:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   load();
+  // }, [travelIdParam]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, '');
     setFormState((prev) => ({ ...prev, amount: numericValue }));
   };
 
-  const handleTravelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const travelId = e.target.value === '' ? null : Number(e.target.value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleExpenseTypeChange = (type: TransactionType) => {
+    setFormState((prev) => ({ ...prev, expenseType: type }));
+  };
+
+  const handleCurrencyChange = (currencyNumber: number) => {
+    setFormState((prev) => ({ ...prev, currency: currencyNumber }));
+  };
+
+  const handleDateSelect = (date: string) => {
+    setFormState((prev) => ({ ...prev, expense_date: date }));
+    setIsDateSheetOpen(false);
+  };
+
+  const handleTravelSelect = async (travelId: number) => {
+    setFormState((prev) => ({ ...prev, travel_id: travelId }));
+    try {
+      const response = await getTravel(travelId);
+      setSelectedTravel(response.travel);
+    } catch (error) {
+      console.error('예산 정보 조회 실패:', error);
+    }
+  };
+
+  // 카테고리 선택 핸들러들
+  const handleCategoryMajorSelect = (major: CategoryMajor) => {
+    setSelectedMajor(major);
+    setIsCategoryMajorSheetOpen(false);
+    setIsCategorySubSheetOpen(true);
+  };
+
+  const handleCategorySubBack = () => {
+    setIsCategorySubSheetOpen(false);
+    setIsCategoryMajorSheetOpen(true);
+  };
+
+  const handleCategorySubSelect = (subId: number, subName: string) => {
     setFormState((prev) => ({
       ...prev,
-      travel_id: travelId,
+      category: subName,
+      categorySubId: subId,
     }));
+    setIsCategorySubSheetOpen(false);
+  };
+
+  const handleCategoryEdit = () => {
+    setIsCategorySubSheetOpen(false);
+    setIsCategoryEditModalOpen(true);
+  };
+
+  const handleCategoryEditBack = () => {
+    setIsCategoryEditModalOpen(false);
+    setIsCategorySubSheetOpen(true);
+  };
+
+  const handleCategoryAdd = () => {
+    setEditingSub(null);
+    setIsCategoryInputSheetOpen(true);
+  };
+
+  const handleCategorySubEdit = (sub: CategorySub) => {
+    setEditingSub(sub);
+    setIsCategoryInputSheetOpen(true);
+  };
+
+  const handleCategoryInputBack = () => {
+    setIsCategoryInputSheetOpen(false);
+    setEditingSub(null);
+    // 편집 모달이 열려있으면 편집 모달로, 아니면 세부카테고리 바텀시트로
+    if (isCategoryEditModalOpen) {
+      // 편집 모달은 이미 열려있으므로 그대로 유지
+    } else {
+      setIsCategorySubSheetOpen(true);
+    }
+  };
+
+  const [categoryInputSuccessTrigger, setCategoryInputSuccessTrigger] = useState(0);
+  const [categorySubRefreshTrigger, setCategorySubRefreshTrigger] = useState(0);
+
+  const handleCategoryInputSuccess = () => {
+    // 편집 모달이 열려있으면 리스트 새로고침을 위한 트리거 업데이트
+    if (isCategoryEditModalOpen) {
+      setCategoryInputSuccessTrigger(prev => prev + 1);
+    } else {
+      // 세부카테고리 바텀시트가 열려있으면 리스트 새로고침
+      setCategorySubRefreshTrigger(prev => prev + 1);
+    }
+  };
+
+  const handleCategorySubRefresh = () => {
+    setCategorySubRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleCategorySubSelectFromEdit = (subId: number, subName: string) => {
+    handleCategorySubSelect(subId, subName);
+    setIsCategoryEditModalOpen(false);
+  };
+
+  const handleClearCategorySelection = () => {
+    setFormState((prev) => ({
+      ...prev,
+      category: '',
+      categorySubId: null,
+    }));
+  };
+
+  // 초기 travel_id가 있을 때 travel 정보 로드
+  useEffect(() => {
+    if (travelIdParam) {
+      const travelId = Number(travelIdParam);
+      handleTravelSelect(travelId);
+    }
+  }, [travelIdParam]);
+
+  // 예산 추가 완료 후 돌아왔을 때 처리
+  useEffect(() => {
+    if (returnToParam === 'expense/new') {
+      const newTravelId = searchParams.get('travel_id');
+      if (newTravelId) {
+        const travelId = Number(newTravelId);
+        handleTravelSelect(travelId);
+      }
+      // 바텀시트 열기
+      setIsTravelSheetOpen(true);
+    }
+  }, [returnToParam]);
+
+  // 환율 계산 (금액 작성되고 통화 선택이 되면 자동으로 환율 API 호출)
+  useEffect(() => {
+    const calculateRate = async () => {
+      // KRW이면 환율 계산 불필요
+      if (formState.currency === CurrencyCode.KRW) {
+        setExchangeRate(null);
+        return;
+      }
+
+      // 금액이 없으면 계산하지 않음
+      if (!formState.amount || parseFloat(formState.amount) <= 0) {
+        setExchangeRate(null);
+        return;
+      }
+
+      // 통화 코드가 없으면 계산하지 않음
+      const currency = selectedCurrency?.currency_code?.toLowerCase();
+      if (!currency) {
+        setExchangeRate(null);
+        return;
+      }
+
+      // 날짜가 없으면 오늘 날짜를 기본값으로 사용
+      const dateToUse = formState.expense_date || dayjs().format('YYYY-MM-DD');
+
+      try {
+        const result = await calculateExchange(
+          parseFloat(formState.amount),
+          currency,
+          dateToUse
+        );
+        
+        // rate는 1원당 환율이므로 그대로 사용
+        setExchangeRate(result.rate);
+      } catch (error) {
+        console.error('환율 계산 실패:', error);
+        setExchangeRate(null);
+      }
+    };
+
+    // 디바운싱: 입력이 끝난 후에만 API 호출
+    const timeoutId = setTimeout(() => {
+      calculateRate();
+    }, 500); // 500ms 대기
+
+    return () => clearTimeout(timeoutId);
+  }, [formState.currency, formState.amount, selectedCurrency, formState.expense_date]);
+
+  const formattedAmount = formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : '';
+  const formattedDate = formState.expense_date 
+    ? dayjs(formState.expense_date).format('YYYY년 MM월 DD일')
+    : '';
+  const isExpense = formState.expenseType === 'EXPENSE';
+
+  // 입력값이 있는지 확인하는 함수
+  const hasInputValues = useMemo(() => {
+    return !!(
+      formState.amount ||
+      formState.category ||
+      formState.expense_date ||
+      formState.memo ||
+      formState.travel_id ||
+      formState.expenseType !== 'EXPENSE' ||
+      formState.currency !== 756 // 기본값이 아닌 경우
+    );
+  }, [formState]);
+
+  // 뒤로가기 핸들러
+  const handleBackClick = () => {
+    if (hasInputValues) {
+      showConfirm({
+        title: '작성 중인 내용 삭제',
+        message: '지금 나가시면 작성한 내용이 삭제돼요.',
+        confirmText: '나가기',
+        cancelText: '취소',
+        onConfirm: () => {
+          router.back();
+        },
+        onCancel: () => {
+          // 모달 닫기만 하면 됨
+        },
+      });
+    } else {
+      router.back();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formState.travel_id) return;
-
     try {
-      const dataToSend: UpdateExpense = {
-        travel_id: formState.travel_id,
+      // 필수 필드 검증 - 메시지 없이 포커스만 이동
+      if (!formState.amount || parseFloat(formState.amount) <= 0) {
+        amountInputRef.current?.focus();
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formState.category) {
+        categoryButtonRef.current?.focus();
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!formState.expense_date) {
+        dateButtonRef.current?.focus();
+        setIsSubmitting(false);
+        return;
+      }
+
+      // InsertExpense 타입에 맞게 데이터 변환
+      // API 기준으로 매핑: form에 없으면 더미데이터, form에 있지만 API에 없으면 생략
+      const dataToSend: Omit<InsertExpense, 'user_id' | 'created_at' | 'updated_at' | 'expense_id'> = {
         amount: parseFloat(formState.amount) || 0,
-        currency: formState.currency,
-        exchange_rate: formState.exchange_rate ? parseFloat(formState.exchange_rate) : null,
         category: formState.category,
-        expense_date: formState.expense_date || new Date().toISOString().slice(0, 10),
+        currency: formState.currency,
+        expense_date: formState.expense_date,
+        travel_id: formState.travel_id || 0, // form에 없으면 더미데이터 0
+        type: formState.expenseType, // expenseType -> type 매핑
+        exchange_rate: exchangeRate || null, // 계산된 환율 값 (1원당 환율)
+        memo: formState.memo || null,
       };
 
-      // await createExpense(dataToSend);
+      await createExpense(dataToSend);
       router.push('/expense');
     } catch (error) {
       alert(error instanceof Error ? error.message : '지출 추가에 실패했습니다.');
@@ -128,160 +379,259 @@ function AddExpensePageContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>로딩중...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <span className={styles.headerTitle}>지출 추가</span>
-      </div>
-
-      <form onSubmit={handleSubmit} className={styles.formSection}>
-        <h2 className={styles.formHeader}>지출 추가</h2>
-
-        <button type="button" className={styles.uploadButton}>
-          영수증 사진 업로드
-        </button>
-
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="expense_date">
-            날짜
-          </label>
+    <div className="flex flex-col min-h-screen bg-white">
+      <TopAreaSub
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
+        text="내역 추가"
+        onLeftClick={handleBackClick}
+      />
+      
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">
+        {/* 금액 */}
+        <div className="p-[20px]">
           <input
-            id="expense_date"
-            name="expense_date"
-            type="date"
-            className={styles.input}
-            value={formState.expense_date}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="category">
-            카테고리
-          </label>
-          <select
-            id="category"
-            name="category"
-            className={styles.input}
-            value={formState.category}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">선택하세요</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="amount">
-            금액
-          </label>
-          <input
-            id="amount"
+            ref={amountInputRef}
             name="amount"
             type="text"
             inputMode="numeric"
-            className={styles.input}
-            value={formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : ''}
+            className="w-full text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400"
+            placeholder="금액"
+            value={formattedAmount}
             onChange={handleAmountChange}
-            placeholder="금액을 입력하세요"
-            required
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="travel_id">
-            예산
-          </label>
-          <select
-            id="travel_id"
-            name="travel_id"
-            className={styles.input}
-            value={formState.travel_id || ''}
-            onChange={handleTravelChange}
+        {/* 분류 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">분류</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleExpenseTypeChange('EXPENSE')}
+              className={`px-4 py-3 rounded-full text-body-2 font-medium transition-colors whitespace-nowrap ${
+                isExpense
+                  ? 'bg-[#4A6B87] text-white'
+                  : 'bg-[#E0F2F7] text-grayscale-600'
+              }`}
+            >
+              지출
+            </button>
+            <button
+              type="button"
+              onClick={() => handleExpenseTypeChange('INCOME')}
+              className={`px-4 py-3 rounded-full text-body-2 font-medium transition-colors whitespace-nowrap ${
+                !isExpense
+                  ? 'bg-[#4A6B87] text-white'
+                  : 'bg-[#E0F2F7] text-grayscale-600'
+              }`}
+            >
+              수입
+            </button>
+          </div>
+        </div>
+
+        {/* 통화 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">통화</label>
+          <button
+            type="button"
+            onClick={() => setIsCurrencySheetOpen(true)}
+            className="w-full px-4 py-3 border-none rounded-lg flex items-center justify-between bg-white"
           >
-            <option value="">선택 안 함</option>
-            {travels.map((travel) => (
-              <option key={travel.travel_id} value={travel.travel_id}>
-                {travel.travel_title}
-              </option>
-            ))}
-          </select>
+            <span className={selectedCurrency ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
+              {selectedCurrency?.currency_name || '선택해주세요'}
+            </span>
+            <Image
+              src="/icons/icon-arrow_right-24.svg"
+              alt="선택"
+              width={24}
+              height={24}
+            />
+          </button>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="currency">
-            통화
-          </label>
-          <select
-            id="currency"
-            name="currency"
-            className={styles.input}
-            value={formState.currency}
-            onChange={(e) => {
-              setFormState((prev) => ({ ...prev, currency: Number(e.target.value) }));
-            }}
-            required
+        {/* 예산명 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">예산명</label>
+          <button
+            type="button"
+            onClick={() => setIsTravelSheetOpen(true)}
+            className="w-full px-4 py-3 border-none rounded-lg flex items-center justify-between bg-white"
           >
-            {CURRENCY_OPTIONS.map((option) => (
-              <option key={option.code} value={option.code}>
-                {option.name}
-              </option>
-            ))}
-          </select>
+            <span className={selectedTravel ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
+              {selectedTravel?.travel_title || '선택해주세요'}
+            </span>
+            <Image
+              src="/icons/icon-arrow_right-24.svg"
+              alt="선택"
+              width={24}
+              height={24}
+            />
+          </button>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="exchange_rate">
-            환율
-          </label>
-          <input
-            id="exchange_rate"
-            name="exchange_rate"
-            type="text"
-            inputMode="decimal"
-            className={styles.input}
-            value={formState.exchange_rate}
-            onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9.]/g, '');
-              setFormState((prev) => ({ ...prev, exchange_rate: value }));
-            }}
-            placeholder="환율을 입력하세요"
-            disabled={formState.currency === CurrencyCode.KRW}
-          />
+        {/* 카테고리 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">카테고리</label>
+          <button
+            ref={categoryButtonRef}
+            type="button"
+            onClick={() => setIsCategoryMajorSheetOpen(true)}
+            className="w-full px-4 py-3 border-none rounded-lg flex items-center justify-between bg-white"
+          >
+            <span className={formState.category ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
+              {formState.category || '선택해주세요'}
+            </span>
+            <Image
+              src="/icons/icon-arrow_right-24.svg"
+              alt="선택"
+              width={24}
+              height={24}
+            />
+          </button>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="memo">
-            메모
-          </label>
+        {/* 날짜 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">날짜</label>
+          <button
+            ref={dateButtonRef}
+            type="button"
+            onClick={() => setIsDateSheetOpen(true)}
+            className="w-full px-4 py-3 border-none rounded-lg flex items-center justify-between bg-white"
+          >
+            <span className={formattedDate ? 'text-body-2 text-text-primary' : 'text-body-2 text-grayscale-500'}>
+              {formattedDate || '선택해주세요'}
+            </span>
+            <Image
+              src="/icons/icon-arrow_right-24.svg"
+              alt="선택"
+              width={24}
+              height={24}
+            />
+          </button>
+        </div>
+
+        {/* 내용 */}
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap">내용</label>
           <input
-            id="memo"
             name="memo"
             type="text"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none placeholder:text-grayscale-500"
+            placeholder="입력해주세요"
             value={formState.memo}
             onChange={handleInputChange}
-            placeholder="메모를 입력하세요"
           />
         </div>
 
-        <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-          {isSubmitting ? '처리 중...' : '지출 추가'}
-        </button>
+        {/* 통화 선택 바텀시트 */}
+        <CurrencySelectBottomSheet
+          isOpen={isCurrencySheetOpen}
+          onClose={() => setIsCurrencySheetOpen(false)}
+          currencies={availableCurrencies}
+          selectedCurrencyNumber={formState.currency}
+          onSelect={handleCurrencyChange}
+        />
+
+        {/* 날짜 선택 바텀시트 */}
+        <DateSelectBottomSheet
+          isOpen={isDateSheetOpen}
+          onClose={() => setIsDateSheetOpen(false)}
+          selectedDate={formState.expense_date || new Date().toISOString().slice(0, 10)}
+          onSelect={handleDateSelect}
+          title="날짜 선택"
+        />
+
+        {/* 예산명 선택 바텀시트 */}
+        <TravelSelectBottomSheet
+          isOpen={isTravelSheetOpen}
+          onClose={() => setIsTravelSheetOpen(false)}
+          selectedTravelId={formState.travel_id}
+          onSelect={handleTravelSelect}
+          returnTo="expense/new"
+        />
+
+        {/* 주카테고리 선택 바텀시트 */}
+        <CategoryMajorBottomSheet
+          isOpen={isCategoryMajorSheetOpen}
+          onClose={() => setIsCategoryMajorSheetOpen(false)}
+          selectedMajor={selectedMajor}
+          onSelect={handleCategoryMajorSelect}
+        />
+
+        {/* 세부카테고리 선택 바텀시트 */}
+        {selectedMajor && (
+          <CategorySubBottomSheet
+            isOpen={isCategorySubSheetOpen}
+            onClose={() => {
+              setIsCategorySubSheetOpen(false);
+              setSelectedMajor(null);
+            }}
+            major={selectedMajor}
+            selectedSubId={formState.categorySubId}
+            onSelect={handleCategorySubSelect}
+            onEdit={handleCategoryEdit}
+            onRefresh={categorySubRefreshTrigger}
+            onBack={handleCategorySubBack}
+          />
+        )}
+
+        {/* 세부카테고리 편집 모달 */}
+        {selectedMajor && (
+          <CategorySubEditModal
+            isOpen={isCategoryEditModalOpen}
+            onClose={() => {
+              setIsCategoryEditModalOpen(false);
+              setSelectedMajor(null);
+            }}
+            major={selectedMajor}
+            onAdd={handleCategoryAdd}
+            onEdit={handleCategorySubEdit}
+            onSelect={handleCategorySubSelectFromEdit}
+            onInputSuccess={categoryInputSuccessTrigger}
+            onRefresh={handleCategorySubRefresh}
+            onBack={handleCategoryEditBack}
+            selectedSubId={formState.categorySubId}
+            onClearSelection={handleClearCategorySelection}
+          />
+        )}
+
+        {/* 세부카테고리 추가/수정 바텀시트 */}
+        {selectedMajor && (
+          <CategorySubInputBottomSheet
+            isOpen={isCategoryInputSheetOpen}
+            onClose={() => {
+              setIsCategoryInputSheetOpen(false);
+              setEditingSub(null);
+            }}
+            major={selectedMajor}
+            editingSub={editingSub}
+            onSuccess={handleCategoryInputSuccess}
+            onBack={handleCategoryInputBack}
+          />
+        )}
+
+        {/* 하단 버튼 */}
+        <div className="fixed bottom-0 left-0 right-0 flex gap-[8px] p-[20px] border-t border-grayscale-300 bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
+          <Link
+            href="/expense"
+            className="flex-1"
+            style={{ textDecoration: 'none' }}
+          >
+            <Button variant="line">
+              취소
+            </Button>
+          </Link>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1"
+          >
+            {isSubmitting ? '저장 중...' : '저장하기'}
+          </Button>
+        </div>
       </form>
     </div>
   );
@@ -289,9 +639,8 @@ function AddExpensePageContent() {
 
 export default function AddExpensePage() {
   return (
-    <Suspense fallback={<div className={styles.container}>로딩중...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">로딩중...</div>}>
       <AddExpensePageContent />
     </Suspense>
   );
 }
-
