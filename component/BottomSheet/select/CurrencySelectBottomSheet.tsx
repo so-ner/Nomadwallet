@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { CurrencyData } from '@/lib/currency';
 import Button from '@/component/Button';
+import BottomSheet from '@/component/BottomSheet/core/BottomSheet';
 import styles from './CurrencySelectBottomSheet.module.css';
 
 interface CurrencySelectBottomSheetProps {
@@ -94,26 +95,20 @@ export default function CurrencySelectBottomSheet({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className={`${styles.backdrop} ${isOpen ? styles.backdropOpen : ''}`}
-        onClick={onClose}
-      />
-
-      {/* Bottom Sheet */}
-      <div className={`${styles.bottomSheet} ${isOpen ? styles.bottomSheetOpen : ''}`}>
-        <div className={styles.bottomSheetHeader}>
-          <div className={styles.bottomSheetDrag} />
+    <BottomSheet isOpen={isOpen} onClose={onClose}>
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-center px-4 pb-4 relative flex-shrink-0 h-10">
+          <div className="w-12 h-1.5 rounded-full bg-grayscale-300" />
         </div>
 
-        <div className={styles.bottomSheetTitle}>
+        {/* Title */}
+        <div className="px-4 pb-4 border-b border-grayscale-300 flex-shrink-0 h-[60px] flex items-center justify-center">
           <h2 className="text-subhead-1 text-text-primary">통화 선택</h2>
         </div>
 
+        {/* Picker Container */}
         <div className={styles.pickerContainer}>
           {/* 선택 영역 표시 */}
           <div className={styles.selectionIndicator} />
@@ -152,7 +147,8 @@ export default function CurrencySelectBottomSheet({
           </div>
         </div>
 
-        <div className={styles.bottomSheetFooter}>
+        {/* Footer */}
+        <div className="px-4 pt-4 border-t border-grayscale-300 flex-shrink-0 h-16 flex items-center">
           <Button
             type="button"
             onClick={handleConfirmSelect}
@@ -161,7 +157,7 @@ export default function CurrencySelectBottomSheet({
           </Button>
         </div>
       </div>
-    </>
+    </BottomSheet>
   );
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,8 +8,8 @@ import TopAreaSub from '@/component/top_area/TopAreaSub';
 import { PostTravelRequest, WarnType } from '@/types/travel';
 import { createTravel } from '@/lib/api/travel';
 import dayjs from '@/lib/dayjs';
-import CurrencySelectBottomSheet from '@/component/CurrencySelectBottomSheet';
-import DateSelectBottomSheet from '@/component/DateSelectBottomSheet';
+import CurrencySelectBottomSheet from '@/component/BottomSheet/select/CurrencySelectBottomSheet';
+import DateSelectBottomSheet from '@/component/BottomSheet/select/DateSelectBottomSheet';
 import Button from '@/component/Button';
 import { processCurrencyData, getUniqueCurrencies, CurrencyData } from '@/lib/currency';
 import rawCurrencyData from '@/lib/currency-data.json';
@@ -28,7 +28,7 @@ interface TravelFormState {
   content: string;
 }
 
-export default function AddBudgetPage() {
+function AddBudgetPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
@@ -423,5 +423,13 @@ export default function AddBudgetPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AddBudgetPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">로딩중...</div>}>
+      <AddBudgetPageContent />
+    </Suspense>
   );
 }

@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { CategorySub, CategoryMajor } from '@/types/expense';
 import { createCategorySub, updateCategorySub } from '@/lib/api/category';
 import { categoryOptions } from '@/types/expense';
-import Button from './Button';
-import InputField from './InputField';
+import Button from '@/component/Button';
+import InputField from '@/component/InputField';
+import BottomSheet from '@/component/BottomSheet/core/BottomSheet';
 
 interface CategorySubInputBottomSheetProps {
   isOpen: boolean;
@@ -68,69 +69,52 @@ export default function CategorySubInputBottomSheet({
 
   const majorLabel = categoryOptions.find(opt => opt.value === major)?.label || '';
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-40 z-[120]"
-        onClick={() => {
-          if (onBack) {
-            onBack();
-          } else {
-            onClose();
-          }
-        }}
-      />
-      
-      {/* Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-[121] md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
-        {/* Header */}
-        <div className="flex items-center justify-between px-[20px] pt-[24px] pb-[16px]">
-          <button
-            onClick={() => {
-              if (onBack) {
-                onBack();
-              } else {
-                onClose();
-              }
-            }}
-            className="p-2 -ml-2 text-grayscale-600"
-            aria-label="닫기"
-          >
-            ✕
-          </button>
-          <h2 className="text-subhead-1 text-text-primary">
-            카테고리 이름을 입력하세요
-          </h2>
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="text-body-2 text-button-primary disabled:text-grayscale-400"
-          >
-            확인
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-[20px] pb-[24px]">
-          <InputField
-            label={`${majorLabel} 카테고리`}
-            type="text"
-            value={subName}
-            onChange={(e) => setSubName(e.target.value)}
-            placeholder="카테고리 입력"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSubmit();
-              }
-            }}
-            autoFocus
-          />
-        </div>
+    <BottomSheet isOpen={isOpen} onClose={onBack || onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-4">
+        <button
+          onClick={() => {
+            if (onBack) {
+              onBack();
+            } else {
+              onClose();
+            }
+          }}
+          className="p-2 -ml-2 text-grayscale-600"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
+        <h2 className="text-subhead-1 text-text-primary">
+          카테고리 이름을 입력하세요
+        </h2>
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="text-body-2 text-button-primary disabled:text-grayscale-400"
+        >
+          확인
+        </button>
       </div>
-    </>
+
+      {/* Content */}
+      <div className="px-5 pb-6">
+        <InputField
+          label={`${majorLabel} 카테고리`}
+          type="text"
+          value={subName}
+          onChange={(e) => setSubName(e.target.value)}
+          placeholder="카테고리 입력"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSubmit();
+            }
+          }}
+          autoFocus
+        />
+      </div>
+    </BottomSheet>
   );
 }
 
