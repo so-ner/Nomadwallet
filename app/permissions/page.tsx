@@ -244,10 +244,7 @@ export default function PermissionsPage() {
   return (
     <div className="flex flex-col items-center min-h-screen w-full px-5 py-8 bg-white">
       <div className="w-full max-w-[600px] flex flex-col gap-4">
-        <TopAreaSub
-          leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
-          onLeftClick={() => router.back()}
-        />
+        <TopAreaSub onBack={() => router.back()} />
 
         <div style={{padding: '0 2rem', marginTop: '2.4rem'}}>
           <h1 className="text-[24px] font-bold text-[#111827] leading-[32px]">

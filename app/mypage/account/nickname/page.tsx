@@ -98,9 +98,8 @@ export default function NicknameChangePage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="계정 관리"
-        onLeftClick={handleBack}
+        onBack={handleBack}
       />
       
       <main className="flex-1 px-8 py-8">
