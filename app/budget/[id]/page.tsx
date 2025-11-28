@@ -84,7 +84,7 @@ export default function BudgetDetailPage() {
             totalBudget: String(travel.total_budget || ''),
             currencyCode: travel.currency || 756,
             warnType: (travel.warn_type as WarnType) || '',
-            warnDetailCond: travel.warn_detail_cond || '',
+            warnDetailCond: travel.warn_detail_cond ? String(travel.warn_detail_cond) : '',
             content: '', // content 필드가 없을 수 있음
           });
         }
