@@ -12,13 +12,35 @@ export interface GetNicknameResponse {
   nick_name: string;
 }
 
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
+export interface GetProfileResponse {
+  nick_name: string | null;
+  profile_image_url: string | null;
 }
 
-export interface ChangePasswordResponse {
-  message: string;
+export interface SavePermissionRequest {
+  kind: 'location' | 'notice';
+  granted: boolean;
+}
+
+export interface SavePermissionResponse {
+  ok: boolean;
+}
+
+/**
+ * 프로필 정보 조회 (닉네임, 프로필 이미지 URL)
+ * @returns 사용자 프로필 정보
+ */
+export async function getProfile(): Promise<GetProfileResponse> {
+  const res = await apiFetch('/api/user/profile', {
+    method: 'GET',
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error ?? '프로필 정보를 가져오지 못했습니다.');
+  }
+
+  return data as GetProfileResponse;
 }
 
 /**
@@ -66,6 +88,29 @@ export async function updateNickname(nickname: string): Promise<UpdateNicknameRe
 }
 
 /**
+ * 권한 허용 여부 저장
+ * @param kind 권한 종류 ('location' | 'notice')
+ * @param granted 허용 여부
+ * @returns 저장 완료 응답
+ */
+export async function savePermission(kind: 'location' | 'notice', granted: boolean): Promise<SavePermissionResponse> {
+  const res = await apiFetch('/api/user/permission', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ kind, granted }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error ?? '권한 정보 저장에 실패했습니다.');
+  }
+
+  return data as SavePermissionResponse;
+}
+
+/**
  * TODO: 비밀번호 변경 API 구현 필요
  * 기존 비밀번호를 확인하고 새 비밀번호로 변경하는 API 엔드포인트가 필요합니다.
  * 
@@ -99,6 +144,15 @@ export async function changePassword(
   // }
   //
   // return data as ChangePasswordResponse;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
 }
 
 export interface WithdrawResponse {

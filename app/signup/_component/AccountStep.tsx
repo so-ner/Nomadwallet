@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import Button from '@/component/Button';
 import InputField from '@/component/InputField';
 import StepIndicator from './StepIndicator';
@@ -24,6 +25,8 @@ export default function AccountStep({
   onAccountChange,
   onSubmit,
 }: AccountStepProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+  
   const isValid =
     accountValues.email &&
     accountValues.password &&
@@ -36,13 +39,15 @@ export default function AccountStep({
     !accountErrors.confirm;
 
   return (
-    <>
-      <div style={{ padding: '0 2rem', marginTop: '2rem' }}>
+    <div className="flex flex-col min-h-screen pb-[calc(5rem+2rem)]">
+      <div className="mt-[1rem] pt-[1.7rem] px-[2rem] pb-[1.6rem]">
         <StepIndicator current={2} />
-        <h1 className="text-[24px] font-bold text-[#111827] leading-[32px] mt-4">가입 정보를 입력해주세요</h1>
       </div>
-      <div className="mt-4 px-5">
-        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
+      <div className="pt-[1.4rem] px-[2rem] pb-[3.8rem]">
+        <h1 className="text-headline-1 font-bold text-black">가입 정보를 입력해주세요</h1>
+      </div>
+      <div className="px-[2rem]">
+        <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-col">
           <InputField
             label="이메일 주소"
             type="email"
@@ -54,43 +59,62 @@ export default function AccountStep({
             onChange={(e) => onAccountChange('email', e.target.value)}
             required
           />
-          <InputField
-            label="비밀번호"
-            type="password"
-            name="password"
-            placeholder="비밀번호 입력"
-            value={accountValues.password}
-            showPasswordToggle
-            description={accountErrors.password || '* 영문, 숫자, 특수 문자 포함 8자 이상 입력해주세요.'}
-            descriptionType={accountErrors.password ? 'error' : 'default'}
-            onChange={(e) => onAccountChange('password', e.target.value)}
-            required
-          />
-          <InputField
-            label="비밀번호 확인"
-            type="password"
-            name="confirmPassword"
-            placeholder="비밀번호 입력"
-            value={accountValues.confirmPassword}
-            showPasswordToggle
-            description={
-              accountErrors.confirm
-                ? accountErrors.confirm
-                : accountSuccess.confirm
-                  ? '* 비밀번호가 일치합니다.'
-                  : undefined
-            }
-            descriptionType={accountErrors.confirm ? 'error' : accountSuccess.confirm ? 'success' : undefined}
-            onChange={(e) => onAccountChange('confirmPassword', e.target.value)}
-            required
-          />
+          <div className="mt-[4rem]">
+            <InputField
+              label="비밀번호"
+              type="password"
+              name="password"
+              placeholder="비밀번호 입력"
+              value={accountValues.password}
+              showPasswordToggle
+              description={accountErrors.password || '* 영문, 숫자, 특수 문자 포함 8자 이상 입력해주세요.'}
+              descriptionType={accountErrors.password ? 'error' : 'default'}
+              onChange={(e) => onAccountChange('password', e.target.value)}
+              required
+            />
+          </div>
+          <div className="mt-[2.6rem]">
+            <InputField
+              label="비밀번호 확인"
+              type="password"
+              name="confirmPassword"
+              placeholder="비밀번호 입력"
+              value={accountValues.confirmPassword}
+              showPasswordToggle
+              description={
+                accountErrors.confirm
+                  ? accountErrors.confirm
+                  : accountSuccess.confirm
+                    ? '* 비밀번호가 일치합니다.'
+                    : undefined
+              }
+              descriptionType={accountErrors.confirm ? 'error' : accountSuccess.confirm ? 'success' : undefined}
+              onChange={(e) => onAccountChange('confirmPassword', e.target.value)}
+              required
+            />
+          </div>
           {accountErrors.general && <p className="text-sm text-[#EB4F49]">{accountErrors.general}</p>}
-          <Button type="submit" variant={isValid ? 'default' : 'disabled'} disabled={!isValid || accountLoading}>
-            {accountLoading ? '확인 중...' : '다음'}
-          </Button>
         </form>
       </div>
-    </>
+      
+      {/* 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
+        <Button
+          type="button"
+          variant={isValid ? 'default' : 'disabled'}
+          disabled={!isValid || accountLoading}
+          onClick={() => {
+            if (formRef.current) {
+              const event = new Event('submit', { cancelable: true, bubbles: true });
+              formRef.current.dispatchEvent(event);
+            }
+          }}
+          className="w-full"
+        >
+          {accountLoading ? '확인 중...' : '다음'}
+        </Button>
+      </div>
+    </div>
   );
 }
 

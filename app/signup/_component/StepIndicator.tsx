@@ -6,8 +6,10 @@ export default function StepIndicator({ current }: { current: number }) {
       {[1, 2, 3].map((step) => (
         <span
           key={step}
-          className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold ${
-            current === step ? 'bg-[#0F2B4F] text-white' : 'bg-[#D7E3EC] text-[#0F2B4F]'
+          className={`w-[3rem] h-[3rem] rounded-full flex items-center justify-center text-headline-5 font-semibold border-[0.2rem] border-[#B5E6F3] box-border ${
+            current === step
+              ? 'bg-[#326789] text-white'
+              : 'bg-[#87C4DB] text-white'
           }`}
         >
           {step}

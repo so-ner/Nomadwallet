@@ -26,7 +26,7 @@ export default function SessionRedirect() {
     if (!session?.user?.id) return;
 
     // 리다이렉트하지 않아야 하는 페이지들
-    const excludedPaths = ['/', '/signup', '/onboard', '/permissions'];
+    const excludedPaths = ['/', '/signup', '/signup/profile', '/signup/complete', '/signup/permissions'];
     if (pathname && excludedPaths.some(path => pathname.startsWith(path))) {
       return;
     }
@@ -34,7 +34,7 @@ export default function SessionRedirect() {
     // is_onboarded 상태에 따라 리다이렉트
     if (session.user.is_onboarded === false) {
       // 프로필 설정이 완료되지 않은 경우 프로필 설정 페이지로 이동
-      router.replace('/signup?step=4');
+      router.replace('/signup/profile');
     } else if (session.user.is_onboarded === true) {
       // 온보딩이 완료된 경우 홈으로 이동 (이미 홈에 있으면 리다이렉트하지 않음)
       if (pathname !== '/expense' && pathname !== '/budget') {

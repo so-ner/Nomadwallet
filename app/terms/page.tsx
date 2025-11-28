@@ -115,7 +115,7 @@ export default function TermsPage() {
         .map((term) => ({termsId: term.id}));
       await submitConsents(consents);
       showToast('약관 동의가 완료되었습니다.');
-      router.push('/permissions');
+      router.push('/signup/permissions');
     } catch (err: any) {
       showToast(err?.message ?? '약관 동의에 실패했습니다.');
     } finally {

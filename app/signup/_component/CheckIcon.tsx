@@ -1,14 +1,15 @@
 'use client';
 
+import Image from 'next/image';
+
 export default function CheckIcon({ checked }: { checked: boolean }) {
   return (
-    <span
-      className={`flex items-center justify-center w-6 h-6 rounded-full border ${
-        checked ? 'bg-[#0F2B4F] border-[#0F2B4F] text-white' : 'border-[#D0D5DD] text-transparent'
-      }`}
-    >
-      ✓
-    </span>
+    <Image
+      src={checked ? '/icons/check-on.svg' : '/icons/check-off.svg'}
+      alt={checked ? '체크됨' : '체크 안됨'}
+      width={24}
+      height={24}
+    />
   );
 }
 

@@ -23,8 +23,7 @@ export default function LoginForm() {
       router.replace('/expense');
     } else {
       // is_onboarded가 false인 경우 프로필 설정 페이지로 이동
-      // 회원가입 플로우의 Step 4 (프로필 설정)로 이동
-      router.replace('/signup?step=4');
+      router.replace('/signup/profile');
     }
   }, [session, status, router]);
 
