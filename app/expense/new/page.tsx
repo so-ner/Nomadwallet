@@ -234,6 +234,16 @@ function AddExpensePageContent() {
     }));
   };
 
+  // 쿼리 파라미터에서 날짜가 있으면 formState에 반영
+  useEffect(() => {
+    if (dateParam) {
+      setFormState((prev) => ({
+        ...prev,
+        expense_date: dateParam,
+      }));
+    }
+  }, [dateParam]);
+
   // 초기 travel_id가 있을 때 travel 정보 로드
   useEffect(() => {
     if (travelIdParam) {
@@ -385,7 +395,7 @@ function AddExpensePageContent() {
         category: formState.category,
         currency: formState.currency,
         expense_date: formState.expense_date,
-        travel_id: formState.travel_id || 0, // form에 없으면 더미데이터 0
+        ...(formState.travel_id && formState.travel_id !== 0 ? { travel_id: formState.travel_id } : {}),
         type: formState.expenseType, // expenseType -> type 매핑
         exchange_rate: finalExchangeRate, // 계산된 환율 값 (1원당 환율)
         memo: formState.memo || null,

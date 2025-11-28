@@ -64,6 +64,9 @@ function generateDummyExpenses(): Expense[] {
   return expenses;
 }
 
+/**
+ * 클라이언트/서버 공통 사용 지출 목록 조회 함수
+ */
 export async function getExpenses(params: GetExpensesRequest): Promise<ApiGetExpensesResponse> {
   const response = await fetch(`/api/expense?year=${params.year}&month=${params.month}`, {
     method: 'GET',
@@ -75,6 +78,37 @@ export async function getExpenses(params: GetExpensesRequest): Promise<ApiGetExp
   }
 
   return await response.json();
+}
+
+/**
+ * 서버 사이드에서 사용하는 지출 목록 조회 함수 (Expense[] 반환)
+ */
+export async function getExpensesServer(
+  params: GetExpensesRequest,
+  cookieHeader?: string
+): Promise<Expense[]> {
+  // 서버 사이드에서는 절대 URL 필요
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const url = `${baseUrl}/api/expense?year=${params.year}&month=${params.month}`;
+  
+  const headers: HeadersInit = {};
+  if (cookieHeader) {
+    headers['Cookie'] = cookieHeader;
+  }
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('지출 데이터 로드 실패:', error);
+    return [];
+  }
+
+  const data: ApiGetExpensesResponse = await response.json();
+  return data.expenses ?? [];
 }
 
 export async function getExpense(expenseId: number): Promise<ApiGetExpenseResponse> {

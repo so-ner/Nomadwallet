@@ -23,12 +23,17 @@ export const GET = withAuth(async (user, req) => {
     return NextResponse.json({error: 'year, month are required'}, {status: 400})
   }
 
+  // 다음 달 계산 (12월이면 다음 해 1월로)
+  const nextMonth = month + 1;
+  const nextYear = nextMonth > 12 ? year + 1 : year;
+  const nextMonthValue = nextMonth > 12 ? 1 : nextMonth;
+
   const {data, error} = await supabase
     .from('expense')
     .select('*')
     .eq('user_id', user.id)
     .gte('expense_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('expense_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
+    .lt('expense_date', `${nextYear}-${String(nextMonthValue).padStart(2, '0')}-01`)
   if (error) return NextResponse.json({error: error.message}, {status: 500})
 
   const response: ApiGetExpensesResponse = {expenses: data ?? []}

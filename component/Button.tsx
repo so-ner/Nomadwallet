@@ -36,6 +36,7 @@ export default function Button({
       transition: 'background-color 0.2s, color 0.2s, border-color 0.2s',
       border: 'none',
       cursor: disabled ? 'not-allowed' : 'pointer',
+      boxSizing: 'border-box',
     };
 
     switch (finalVariant) {
