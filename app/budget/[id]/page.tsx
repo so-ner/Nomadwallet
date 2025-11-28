@@ -8,8 +8,8 @@ import TopAreaSub from '@/component/top_area/TopAreaSub';
 import { PutTravelRequest, WarnType, Travel } from '@/types/travel';
 import { getTravel, updateTravel, deleteTravel } from '@/lib/api/travel';
 import dayjs from '@/lib/dayjs';
-import CurrencySelectBottomSheet from '@/component/CurrencySelectBottomSheet';
-import DateSelectBottomSheet from '@/component/DateSelectBottomSheet';
+import CurrencySelectBottomSheet from '@/component/BottomSheet/select/CurrencySelectBottomSheet';
+import DateSelectBottomSheet from '@/component/BottomSheet/select/DateSelectBottomSheet';
 import Button from '@/component/Button';
 import ConfirmModal from '@/component/ConfirmModal';
 import { processCurrencyData, getUniqueCurrencies, CurrencyData } from '@/lib/currency';
@@ -237,7 +237,11 @@ export default function BudgetDetailPage() {
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <TopAreaSub text="예산 상세" onLeftClick={() => router.back()} />
+        <TopAreaSub 
+          leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
+          text="예산 상세" 
+          onLeftClick={() => router.back()} 
+        />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-body-2 text-grayscale-600">로딩중...</div>
         </div>
@@ -248,7 +252,7 @@ export default function BudgetDetailPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<span>←</span>}
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text={formState.travelTitle || '예산 상세'}
         rightElement="삭제"
         onLeftClick={() => router.back()}

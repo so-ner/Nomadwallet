@@ -1,7 +1,7 @@
 .pageContainer {
   position: relative;
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #f7f7f7;
   display: flex;
   flex-direction: column;
   padding-bottom: 4rem; /* 탭바 높이 */
@@ -15,18 +15,18 @@
   color: #6b7280;
 }
 
-/* Top Bar */
-.topBar {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+/* Header 밑 전체 컨테이너 */
+.headerContent {
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
+/* 첫 번째 섹션: 달력+소비리포트 */
 .topBarContent {
-  max-width: 480px;
-  margin: 0 auto;
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
   gap: 0.75rem;
 }
 
@@ -67,12 +67,12 @@
   white-space: nowrap;
 }
 
-/* Summary Row */
-.summaryRow {
-  max-width: 480px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0.75rem 1rem;
+/* 두 번째 섹션: 월지출 월수입 영역 */
+.summaryContainer {
+  padding: 28px;
+  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  background-color: #F3F5FA;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -81,44 +81,30 @@
 
 .summaryBox {
   flex: 1;
-  background-color: #f3f4f6;
-  border-radius: 0.75rem;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 2px;
 }
 
 .summaryLabel {
-  font-size: 0.875rem;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.summaryLabel::before {
-  content: '';
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background-color: #ef4444;
-}
-
-.summaryBox:last-child .summaryLabel::before {
-  background-color: #3b82f6;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .summaryExpense {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #ef4444;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .summaryIncome {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #3b82f6;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 /* Calendar Container */
@@ -244,7 +230,12 @@
 /* Backdrop */
 .backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
   z-index: 105;
   background-color: rgba(0, 0, 0, 0.4);
   transition: opacity 0.3s;
@@ -261,31 +252,22 @@
 .bottomSheet {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
   z-index: 110;
   border-radius: 1rem 1rem 0 0;
   background-color: #ffffff;
   box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease-out;
-  transform: translateY(100%);
   width: 100%;
+  max-width: 600px;
   max-height: calc(100vh - 4rem - 4rem); /* 탭바 높이 고려 */
   display: flex;
   flex-direction: column;
 }
 
-/* PC 화면에서 모바일 영역(440px) 내에서만 보이도록 */
-@media (min-width: 768px) {
-  .bottomSheet {
-    left: 0;
-    right: auto;
-    width: 440px;
-  }
-}
-
 .bottomSheetOpen {
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 .bottomSheetHeader {
@@ -437,41 +419,78 @@
   color: #6b7280;
 }
 
-/* Floating Button */
-.floatingButton {
+/* Floating Button Container */
+.floatingButtonContainer {
   position: fixed;
-  bottom: 5rem;
-  right: 1.5rem;
-  background-color: #4f46e5;
-  color: #ffffff;
-  padding: 1rem;
-  border-radius: 9999px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  transition: background-color 200ms;
+  bottom: 120px;
+  right: 20px;
   z-index: 90;
-  width: auto;
-  height: auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  border: none;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 /* PC 화면에서 모바일 영역(440px) 내에서만 보이도록 */
 @media (min-width: 768px) {
-  .floatingButton {
-    right: calc(100vw - 440px + 1.5rem);
+  .floatingButtonContainer {
+    right: calc(50vw - 300px + 20px);
   }
 }
 
-.floatingButton:hover {
-  background-color: #4338ca;
+/* 메뉴 버튼 (내역 추가) */
+.menuButton {
+  margin-bottom: 18px;
+  width: 150px;
+  height: 51px;
+  padding: 15px 16px;
+  background-color: #ffffff;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 8px 36px 0 rgba(0, 0, 0, 0.16);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #1f2937;
+  text-decoration: none;
+  transition: all 0.2s;
 }
 
-.floatingIconText {
-  font-size: 1.5rem;
-  line-height: 1;
+.menuButton:hover {
+  background-color: #f9fafb;
+}
+
+.menuButtonText {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 21px;
+  color: #1f2937;
+}
+
+/* 메인 플로팅 버튼 */
+.floatingButton {
+  width: 62px;
+  height: 62px;
+  background-color: #4A6B87;
+  border-radius: 50%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.floatingButton:hover {
+  background-color: #3d5a73;
+}
+
+.floatingIcon {
+  transition: transform 0.2s;
+}
+
+.floatingIcon.rotated {
+  transform: rotate(45deg);
 }
 
 /* Bottom Sheet Footer */

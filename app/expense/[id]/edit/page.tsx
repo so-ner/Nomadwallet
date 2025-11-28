@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import styles from '../../new/page.module.css';
 import { UpdateExpense } from '@/types/expense';
 import { getExpense, updateExpense } from '@/lib/api/expense';
 import { getCategories } from '@/lib/api/category';
@@ -136,48 +135,48 @@ export default function EditExpensePage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.loading}>로딩중...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div>로딩중...</div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <span className={styles.headerTitle}>지출 수정</span>
+    <div className="flex flex-col min-h-screen bg-white">
+      <div className="px-5 py-5 border-b border-grayscale-300">
+        <span className="text-headline-3 text-text-primary">지출 수정</span>
       </div>
 
-      <form onSubmit={handleSubmit} className={styles.formSection}>
-        <h2 className={styles.formHeader}>지출 수정</h2>
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">
+        <h2 className="px-5 pt-5 pb-4 text-headline-4 text-text-primary">지출 수정</h2>
 
-        <button type="button" className={styles.uploadButton}>
+        <button type="button" className="mx-5 mb-4 px-4 py-3 border border-grayscale-300 rounded-lg text-body-2 text-text-primary bg-white">
           영수증 사진 업로드
         </button>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="expense_date">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="expense_date">
             날짜
           </label>
           <input
             id="expense_date"
             name="expense_date"
             type="date"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none bg-white"
             value={formState.expense_date}
             onChange={handleInputChange}
             required
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="category">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="category">
             카테고리
           </label>
           <select
             id="category"
             name="category"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none bg-white"
             value={formState.category}
             onChange={handleInputChange}
             required
@@ -191,8 +190,8 @@ export default function EditExpensePage() {
           </select>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="amount">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="amount">
             금액
           </label>
           <input
@@ -200,7 +199,7 @@ export default function EditExpensePage() {
             name="amount"
             type="text"
             inputMode="numeric"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none placeholder:text-grayscale-500 bg-white"
             value={formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : ''}
             onChange={handleAmountChange}
             placeholder="금액을 입력하세요"
@@ -208,14 +207,14 @@ export default function EditExpensePage() {
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="travel_id">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="travel_id">
             예산
           </label>
           <select
             id="travel_id"
             name="travel_id"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none bg-white"
             value={formState.travel_id || ''}
             onChange={handleTravelChange}
           >
@@ -228,14 +227,14 @@ export default function EditExpensePage() {
           </select>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="currency">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="currency">
             통화
           </label>
           <select
             id="currency"
             name="currency"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none bg-white"
             value={formState.currency}
             onChange={(e) => {
               setFormState((prev) => ({ ...prev, currency: Number(e.target.value) }));
@@ -250,8 +249,8 @@ export default function EditExpensePage() {
           </select>
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="exchange_rate">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="exchange_rate">
             환율
           </label>
           <input
@@ -259,7 +258,7 @@ export default function EditExpensePage() {
             name="exchange_rate"
             type="text"
             inputMode="decimal"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none placeholder:text-grayscale-500 bg-white disabled:bg-grayscale-50"
             value={formState.exchange_rate}
             onChange={(e) => {
               const value = e.target.value.replace(/[^0-9.]/g, '');
@@ -270,24 +269,37 @@ export default function EditExpensePage() {
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <label className={styles.label} htmlFor="memo">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-5 py-5">
+          <label className="text-headline-5 text-button-primary whitespace-nowrap" htmlFor="memo">
             메모
           </label>
           <input
             id="memo"
             name="memo"
             type="text"
-            className={styles.input}
+            className="w-full px-4 py-3 border-none rounded-lg text-body-2 text-text-primary focus:outline-none placeholder:text-grayscale-500 bg-white"
             value={formState.memo}
             onChange={handleInputChange}
             placeholder="메모를 입력하세요"
           />
         </div>
 
-        <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-          {isSubmitting ? '처리 중...' : '지출 수정'}
-        </button>
+        <div className="fixed bottom-0 left-0 right-0 flex gap-2 p-5 border-t border-grayscale-300 bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex-1 px-4 py-3 border border-grayscale-300 rounded-lg text-body-2 text-text-primary bg-white"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-4 py-3 bg-button-primary text-white rounded-lg text-body-2 font-medium disabled:opacity-50"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '처리 중...' : '지출 수정'}
+          </button>
+        </div>
       </form>
     </div>
   );

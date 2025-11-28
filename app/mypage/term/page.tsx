@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import TopAreaSub from '@/component/top_area/TopAreaSub';
 
 export default function TermsPage() {
@@ -21,7 +22,7 @@ export default function TermsPage() {
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
       <TopAreaSub
-        leftIcon={<span>←</span>}
+        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="서비스 이용약관"
         onLeftClick={handleBack}
       />

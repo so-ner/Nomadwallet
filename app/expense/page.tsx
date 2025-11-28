@@ -66,6 +66,7 @@ export default function ExpensePage() {
   const [openISO, setOpenISO] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -73,11 +74,13 @@ export default function ExpensePage() {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
-        const { expenses: data } = await getExpenses({ year, month });
+        const { expenses: data } = await getExpenses({ year, month: month + 1 });
         setExpenses(data);
       } catch (error) {
         console.error('지출 데이터 로드 실패:', error);
+        setExpenses([]);
       } finally {
         setLoading(false);
       }
@@ -129,7 +132,10 @@ export default function ExpensePage() {
   return (
     <div className={styles.pageContainer}>
       <TopAreaMain title="NOMAD WALLET" />
-      <div className={styles.topBar}>
+      
+      {/* Header 밑 전체 컨테이너 */}
+      <div className={styles.headerContent}>
+        {/* 첫 번째 섹션: 달력+소비리포트 */}
         <div className={styles.topBarContent}>
           <button className={styles.navButton} onClick={handlePrev} aria-label="이전 달">
             ◄
@@ -141,17 +147,6 @@ export default function ExpensePage() {
           <Link href="/statistics" className={styles.reportButton}>
             소비 리포트
           </Link>
-        </div>
-      </div>
-
-      <div className={styles.summaryRow}>
-        <div className={styles.summaryBox}>
-          <div className={styles.summaryLabel}>월 지출</div>
-          <div className={styles.summaryExpense}>-{nfmt(summary.expense)}</div>
-        </div>
-        <div className={styles.summaryBox}>
-          <div className={styles.summaryLabel}>월 수입</div>
-          <div className={styles.summaryIncome}>+{nfmt(summary.income)}</div>
         </div>
       </div>
 
@@ -196,6 +191,18 @@ export default function ExpensePage() {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* 월지출 월수입 영역 - 달력 아래 */}
+      <div className={styles.summaryContainer}>
+        <div className={styles.summaryBox}>
+          <div className={styles.summaryLabel}>- 월 지출</div>
+          <div className={styles.summaryExpense}>{nfmt(summary.expense)}</div>
+        </div>
+        <div className={styles.summaryBox}>
+          <div className={styles.summaryLabel}>+ 월 수입</div>
+          <div className={styles.summaryIncome}>{nfmt(summary.income)}</div>
         </div>
       </div>
 
@@ -279,9 +286,43 @@ export default function ExpensePage() {
         </div>
       )}
 
-      <Link href="/expense/new" className={styles.floatingButton} aria-label="add-expense">
-        <span className={styles.floatingIconText}>➕</span>
-      </Link>
+      {/* 플로팅 버튼 - budget 페이지와 동일 */}
+      <div className={styles.floatingButtonContainer}>
+        {/* 내역 추가 버튼 (메뉴가 열렸을 때) */}
+        {isMenuOpen && (
+          <Link
+            href="/expense/new"
+            onClick={() => setIsMenuOpen(false)}
+            className={styles.menuButton}
+          >
+            <Image
+              src="/icons/icon-plus2-20.svg"
+              alt="추가"
+              width={20}
+              height={20}
+            />
+            <span className={styles.menuButtonText}>내역 추가</span>
+          </Link>
+        )}
+        
+        {/* 메인 플로팅 버튼 */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={styles.floatingButton}
+          aria-label="add-expense"
+        >
+          <Image
+            src="/icons/icon-plus2-20.svg"
+            alt={isMenuOpen ? "닫기" : "열기"}
+            width={24}
+            height={24}
+            className={`${styles.floatingIcon} ${isMenuOpen ? styles.rotated : ''}`}
+            style={{
+              filter: 'brightness(0) invert(1)',
+            }}
+          />
+        </button>
+      </div>
 
       <NavigationBar />
     </div>

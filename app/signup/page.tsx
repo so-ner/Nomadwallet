@@ -3,6 +3,7 @@
 import React, {useMemo, useState, useEffect, Suspense} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {signIn} from 'next-auth/react';
+import Image from 'next/image';
 import Button from '@/component/Button';
 import InputField from '@/component/InputField';
 import TopAreaSub from '@/component/top_area/TopAreaSub';
@@ -490,7 +491,7 @@ function SignUpPageContent() {
     <div className="flex flex-col items-center min-h-screen w-full px-5 py-8 bg-white">
       <div className="w-full max-w-[600px] flex flex-col gap-4">
         <TopAreaSub
-          leftIcon="←"
+          leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
           onLeftClick={handleBack}
         />
 
