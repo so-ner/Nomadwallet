@@ -62,7 +62,7 @@ export default function BottomSheet({
 
       {/* Bottom Sheet */}
       <div
-        className={`relative w-full max-w-[600px] h-fit bg-white rounded-t-[20px] max-h-[80vh] flex flex-col transform transition-transform duration-300 ease-out py-[32px] ${
+        className={`relative w-full max-w-[600px] h-fit bg-white rounded-t-[20px] max-h-[80vh] flex flex-col transform transition-transform duration-300 ease-out pt-[32px] ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

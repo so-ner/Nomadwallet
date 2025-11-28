@@ -23,19 +23,30 @@ export default function TopAreaMain({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0.9rem 2rem',
+        paddingTop: title ? '0.9rem' : '18px',
+        paddingBottom: title ? '0.9rem' : '14px',
+        paddingLeft: title ? '2rem' : '32px',
+        paddingRight: '2rem',
       }}
     >
-      {/* 왼쪽 텍스트 */}
-      {title && (
+      {/* 왼쪽 텍스트 또는 로고 */}
+      {title ? (
         <h1 style={{ fontSize: '24px', lineHeight: '32px', fontWeight: 700 }}>
           {title}
         </h1>
+      ) : (
+        <Image
+          src="/icons/logo.svg"
+          alt="NOMAD WALLET"
+          width={128}
+          height={29}
+          style={{ width: '128px', height: '29px' }}
+        />
       )}
 
       {/* 오른쪽 알림 버튼 */}
       <Link
-        href={notificationUrl}
+        href="/notification"
         style={{
           display: 'flex',
           alignItems: 'center',

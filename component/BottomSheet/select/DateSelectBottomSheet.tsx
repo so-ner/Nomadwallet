@@ -96,63 +96,61 @@ export default function DateSelectBottomSheet({
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col pt-[32px] gap-6">
-        <div className="flex items-center justify-center">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-center mb-[2.4rem]">
           <h2 className="text-subhead-1 text-text-primary">{title}</h2>
         </div>
 
-        <div className="flex flex-col gap-5">
-          <div className="relative h-[200px] overflow-hidden flex-shrink-0">
-            {/* 년도, 월, 일 컬럼 */}
-            <div className="flex h-[200px] relative">
-              {/* 년도 컬럼 */}
+        <div className="relative h-[200px] overflow-hidden flex-shrink-0">
+          {/* 년도, 월, 일 컬럼 */}
+          <div className="flex h-[200px] relative">
+            {/* 년도 컬럼 */}
+            <ScrollablePicker
+              items={years}
+              selectedValue={tempYear}
+              onSelect={(year) => setTempYear(year)}
+              formatItem={(year) => `${year}년`}
+              isOpen={isOpen}
+            />
+
+            {/* 월 컬럼 - year-month, year-month-day 모드에서만 표시 */}
+            {(mode === 'year-month' || mode === 'year-month-day') && (
               <ScrollablePicker
-                items={years}
-                selectedValue={tempYear}
-                onSelect={(year) => setTempYear(year)}
-                formatItem={(year) => `${year}년`}
+                items={months}
+                selectedValue={tempMonth}
+                onSelect={(month) => {
+                  setTempMonth(month);
+                  // 월이 변경되면 일도 조정
+                  const daysInNewMonth = new Date(tempYear, month, 0).getDate();
+                  if (tempDay > daysInNewMonth) {
+                    setTempDay(daysInNewMonth);
+                  }
+                }}
+                formatItem={(month) => `${month}월`}
                 isOpen={isOpen}
               />
+            )}
 
-              {/* 월 컬럼 - year-month, year-month-day 모드에서만 표시 */}
-              {(mode === 'year-month' || mode === 'year-month-day') && (
-                <ScrollablePicker
-                  items={months}
-                  selectedValue={tempMonth}
-                  onSelect={(month) => {
-                    setTempMonth(month);
-                    // 월이 변경되면 일도 조정
-                    const daysInNewMonth = new Date(tempYear, month, 0).getDate();
-                    if (tempDay > daysInNewMonth) {
-                      setTempDay(daysInNewMonth);
-                    }
-                  }}
-                  formatItem={(month) => `${month}월`}
-                  isOpen={isOpen}
-                />
-              )}
-
-              {/* 일 컬럼 - year-month-day 모드에서만 표시 */}
-              {mode === 'year-month-day' && (
-                <ScrollablePicker
-                  items={tempDays}
-                  selectedValue={tempDay}
-                  onSelect={(day) => setTempDay(day)}
-                  formatItem={(day) => `${day}일`}
-                  isOpen={isOpen}
-                />
-              )}
-            </div>
+            {/* 일 컬럼 - year-month-day 모드에서만 표시 */}
+            {mode === 'year-month-day' && (
+              <ScrollablePicker
+                items={tempDays}
+                selectedValue={tempDay}
+                onSelect={(day) => setTempDay(day)}
+                formatItem={(day) => `${day}일`}
+                isOpen={isOpen}
+              />
+            )}
           </div>
+        </div>
 
-          <div className="py-5 px-[18px] bg-white">
-            <Button
-              type="button"
-              onClick={handleConfirmSelect}
-            >
-              선택하기
-            </Button>
-          </div>
+        <div className="mt-[2rem] p-[2rem] bg-white box-border">
+          <Button
+            type="button"
+            onClick={handleConfirmSelect}
+          >
+            선택하기
+          </Button>
         </div>
       </div>
     </BottomSheet>
