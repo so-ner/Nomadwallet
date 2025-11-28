@@ -374,9 +374,8 @@ export default function ExpenseDetailPage() {
     return (
       <div className="flex flex-col min-h-screen bg-white">
         <TopAreaSub 
-          leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
           text="지출 상세" 
-          onLeftClick={() => router.back()} 
+          onBack={() => router.back()} 
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-body-2 text-grayscale-600">로딩중...</div>
@@ -388,10 +387,9 @@ export default function ExpenseDetailPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="지출 상세"
         rightElement="삭제"
-        onLeftClick={() => router.back()}
+        onBack={() => router.back()}
         onRightClick={() => setIsDeleteModalOpen(true)}
       />
       

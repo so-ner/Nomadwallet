@@ -58,9 +58,8 @@ export default function NotificationPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="알림"
-        onLeftClick={handleBack}
+        onBack={handleBack}
       />
       
       <main className="flex-1 border-t border-grayscale-200">

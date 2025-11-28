@@ -143,9 +143,8 @@ export default function PasswordChangePage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="비밀번호 재설정"
-        onLeftClick={handleBack}
+        onBack={handleBack}
       />
       
       <main className="flex-1 px-8 py-8 pb-[calc(5.6rem+4rem)]">

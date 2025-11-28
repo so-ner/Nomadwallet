@@ -1,13 +1,7 @@
 import { apiFetch } from './fetch';
+import type { ConsentPayload, SubmitConsentsResponse } from '@/types/onboard';
 
-export interface ConsentPayload {
-  termsId: number;
-  channels?: string[];
-}
-
-export interface SubmitConsentsResponse {
-  ok: boolean;
-}
+export type { ConsentPayload, SubmitConsentsResponse };
 
 export async function submitConsents(consents: ConsentPayload[]): Promise<SubmitConsentsResponse> {
   const res = await apiFetch('/api/onboard', {

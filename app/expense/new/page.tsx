@@ -402,9 +402,8 @@ function AddExpensePageContent() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
         text="내역 추가"
-        onLeftClick={handleBackClick}
+        onBack={handleBackClick}
       />
       
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">

@@ -124,16 +124,8 @@ export default function CategorySubEditModal({
       <div className="fixed inset-0 z-[111] flex flex-col bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
         {/* Header */}
         <TopAreaSub
-          leftIcon={
-            <Image
-              src="/icons/icon-arrow_left-24.svg"
-              alt="뒤로가기"
-              width={24}
-              height={24}
-            />
-          }
           text={majorLabel}
-          onLeftClick={() => {
+          onBack={() => {
             if (onBack) {
               onBack();
             } else {

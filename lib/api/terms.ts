@@ -22,8 +22,18 @@ interface ApiTermsResponse {
   }>;
 }
 
+// 클라이언트/서버 공통 사용
 export async function fetchTerms(): Promise<TermItem[]> {
-  const res = await apiFetch('/api/terms');
+  // 서버 사이드에서는 절대 URL 필요
+  const baseUrl = typeof window !== 'undefined' 
+    ? '' 
+    : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  
+  const url = `${baseUrl}/api/terms`;
+  const res = typeof window !== 'undefined' 
+    ? await apiFetch(url)
+    : await fetch(url);
+    
   if (!res.ok) {
     throw new Error('약관 정보를 불러오지 못했습니다.');
   }

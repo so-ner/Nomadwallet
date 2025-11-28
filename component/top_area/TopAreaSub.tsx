@@ -1,20 +1,19 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 interface TopAreaSubProps {
-  leftIcon?: React.ReactNode;
   text?: string;
   rightElement?: React.ReactNode; // 아이콘 또는 텍스트
-  onLeftClick?: () => void;
+  onBack?: () => void;
   onRightClick?: () => void;
 }
 
 export default function TopAreaSub({
-  leftIcon,
   text,
   rightElement,
-  onLeftClick,
+  onBack,
   onRightClick,
 }: TopAreaSubProps) {
   return (
@@ -28,11 +27,11 @@ export default function TopAreaSub({
         position: 'relative',
       }}
     >
-      {/* 왼쪽 아이콘 */}
-      {leftIcon && (
+      {/* 왼쪽 아이콘 (기본 뒤로가기) */}
+      {onBack && (
         <button
           type="button"
-          onClick={onLeftClick}
+          onClick={onBack}
           style={{
             position: 'absolute',
             left: '2.1rem',
@@ -45,13 +44,13 @@ export default function TopAreaSub({
             justifyContent: 'center',
             background: 'none',
             border: 'none',
-            cursor: onLeftClick ? 'pointer' : 'default',
+            cursor: 'pointer',
             padding: 0,
             color: '#212121',
             fontSize: '24px',
           }}
         >
-          {leftIcon}
+          <Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />
         </button>
       )}
 

@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import TopAreaSub from '@/component/top_area/TopAreaSub';
+import TermsIframeView from '@/component/TermsIframeView';
 
 export default function TermsPage() {
   const router = useRouter();
@@ -20,22 +19,12 @@ export default function TermsPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden">
-      <TopAreaSub
-        leftIcon={<Image src="/icons/icon-arrow_left-24.svg" alt="뒤로가기" width={24} height={24} />}
-        text="서비스 이용약관"
-        onLeftClick={handleBack}
-      />
-      
-      <main className="flex-1 bg-grayscale-200 overflow-hidden">
-        <iframe
-          src={termsUrl}
-          className="w-full h-full border-0"
-          title="서비스 이용약관"
-          style={{ height: '100%' }}
-        />
-      </main>
-    </div>
+    <TermsIframeView
+      url={termsUrl}
+      title="서비스 이용약관"
+      onBack={handleBack}
+      isModal={false}
+    />
   );
 }
 

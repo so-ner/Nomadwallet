@@ -157,7 +157,7 @@ export default function InputField({
               aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
             >
               <Image
-                src="/icons/icon-password-hide.svg"
+                src={isPasswordVisible ? '/icons/icon-password-show.svg' : '/icons/icon-password-hide.svg'}
                 alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
                 width={24}
                 height={24}
