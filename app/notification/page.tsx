@@ -46,34 +46,15 @@ export default function NotificationListPage() {
       />
       
       <main className="flex-1">
-        {loading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <p className="text-body-2 text-grayscale-600">로딩 중...</p>
-          </div>
-        ) : !hasData ? (
-          <div className="flex flex-col items-center pt-40 px-4 pb-12 text-center">
-            <div className="mb-8 flex items-center justify-center">
-              <Image
-                src="/empty-alirm.png"
-                alt="알림 없음"
-                width={200}
-                height={200}
-                priority
-                className="grayscale"
-              />
-            </div>
-            <h2 className="text-headline-1 text-grayscale-600 mt-[32px] mb-2">최근 받은 알림이 없어요</h2>
-          </div>
-        ) : (
-          <div className="p-4">
-            {/* TODO: 알림 목록 렌더링 */}
-            {notifications.map((notification) => (
-              <div key={notification.id} className="p-4 border-b border-grayscale-200">
-                {/* 알림 아이템 */}
-              </div>
-            ))}
-          </div>
-        )}
+        <Image
+          src="/screenshot.png"
+          alt="Screenshot"
+          width={0}
+          height={0}
+          sizes="100vw"
+          className="w-full h-auto"
+          priority
+        />
       </main>
     </div>
   );
