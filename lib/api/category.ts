@@ -54,7 +54,7 @@ export async function getCategorySubs(major: CategoryMajor): Promise<CategorySub
   const defaultSubs = defaultCategorySubs[major] || [];
   const defaultCategorySubsList: CategorySub[] = defaultSubs.map((subName, index) => ({
     sub_id: -(index + 1), // 음수 ID로 기본값임을 표시
-    user_id: '',
+    user_id: 0, // 기본 카테고리는 user_id를 0으로 설정
     major: major,
     sub_name: subName,
     created_at: '',
