@@ -61,9 +61,9 @@ export default function TravelSelectBottomSheet({
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 px-[2rem] pb-[3.2rem]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5">
+        <div className="flex items-center justify-between">
           <h2 className="text-subhead-1 text-text-primary">예산명 추가</h2>
           <button
             onClick={onClose}
@@ -75,16 +75,16 @@ export default function TravelSelectBottomSheet({
         </div>
 
         {/* Summary */}
-        <div className="px-5">
+        <div>
           <p className="text-body-4 font-medium text-grayscale-600">총 {travels.length}건</p>
         </div>
 
         {/* Divider */}
-        <div className="h-[1px] bg-grayscale-300 px-5" />
+        <div className="h-[1px] bg-grayscale-300" />
 
         {/* Travel List */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-[26px] px-5">
+          <div className="flex flex-col gap-[26px]">
             {/* Travel Items */}
             {travels.map((travel) => {
               const isSelected = travel.travel_id === selectedTravelId;
@@ -114,17 +114,23 @@ export default function TravelSelectBottomSheet({
             {/* 예산 추가 버튼 */}
             <button
               onClick={handleAddBudget}
-              className="flex items-center gap-2 w-full"
+              className="flex items-center gap-[0.8rem] bg-transparent border-none cursor-pointer text-left"
             >
-              <div className="w-10 h-10 rounded-full bg-status-input flex items-center justify-center flex-shrink-0">
+              {/* 아이콘 영역 */}
+              <div className="w-[4rem] h-[4rem] rounded-full bg-status-input flex items-center justify-center flex-shrink-0">
                 <Image
                   src="/icons/icon-plus2-20.svg"
                   alt="추가"
                   width={20}
                   height={20}
+                  className="w-[2rem] h-[2rem]"
                 />
               </div>
-              <span className="text-body-4 font-medium text-text-primary">예산 추가</span>
+              
+              {/* 텍스트 */}
+              <div className="text-body-4 font-medium text-text-primary">
+                예산 추가
+              </div>
             </button>
           </div>
         </div>

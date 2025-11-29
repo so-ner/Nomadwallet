@@ -43,16 +43,47 @@ function AddExpensePageContent() {
   const returnToParam = searchParams.get('returnTo');
   const { showConfirm } = useConfirm();
   
-  const [formState, setFormState] = useState<ExpenseFormState>({
-    amount: '',
-    expenseType: 'EXPENSE',
-    currency: 0, // 초기값: 선택 안된 상태
-    travel_id: travelIdParam ? Number(travelIdParam) : null,
-    category: '',
-    categorySubId: null,
-    expense_date: dateParam || '',
-    memo: '',
-  });
+  // OCR 데이터에서 초기값 설정
+  const getInitialFormState = (): ExpenseFormState => {
+    // 세션 스토리지에서 OCR 데이터 읽기
+    if (typeof window !== 'undefined') {
+      const ocrDataStr = sessionStorage.getItem('ocrData');
+      if (ocrDataStr) {
+        try {
+          const ocrData = JSON.parse(ocrDataStr);
+          // OCR 데이터 사용 후 삭제
+          sessionStorage.removeItem('ocrData');
+          
+          return {
+            amount: ocrData.total ? String(ocrData.total) : '',
+            expenseType: 'EXPENSE',
+            currency: 410, // OCR 진입 시 원화(KRW)로 자동 설정
+            travel_id: travelIdParam ? Number(travelIdParam) : null,
+            category: '',
+            categorySubId: null,
+            expense_date: ocrData.date || dateParam || '',
+            memo: ocrData.store || '',
+          };
+        } catch (error) {
+          console.error('OCR 데이터 파싱 실패:', error);
+        }
+      }
+    }
+    
+    // OCR 데이터가 없으면 기본값
+    return {
+      amount: '',
+      expenseType: 'EXPENSE',
+      currency: 0,
+      travel_id: travelIdParam ? Number(travelIdParam) : null,
+      category: '',
+      categorySubId: null,
+      expense_date: dateParam || '',
+      memo: '',
+    };
+  };
+  
+  const [formState, setFormState] = useState<ExpenseFormState>(getInitialFormState());
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCurrencySheetOpen, setIsCurrencySheetOpen] = useState(false);
@@ -62,6 +93,7 @@ function AddExpensePageContent() {
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
   const [isCalculatingExchange, setIsCalculatingExchange] = useState(false);
+  const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
   
   // 카테고리 관련 상태
   const [isCategoryMajorSheetOpen, setIsCategoryMajorSheetOpen] = useState(false);
@@ -292,6 +324,14 @@ function AddExpensePageContent() {
 
     // 날짜가 없으면 오늘 날짜를 기본값으로 사용
     const dateToUse = formState.expense_date || dayjs().format('YYYY-MM-DD');
+    
+    // 날짜 형식 검증
+    if (!dateToUse || !/^\d{4}-\d{2}-\d{2}$/.test(dateToUse)) {
+      console.error('Invalid date format:', dateToUse);
+      setExchangeRate(null);
+      setConvertedAmount(null);
+      return;
+    }
 
     setIsCalculatingExchange(true);
     try {
@@ -315,9 +355,15 @@ function AddExpensePageContent() {
 
   // 금액 입력 포커스 아웃 시 환율 계산
   const handleAmountBlur = async () => {
+    setIsAmountInputFocused(false);
     if (formState.amount && formState.currency && formState.currency !== CurrencyCode.KRW) {
       await calculateExchangeRate(parseFloat(formState.amount), formState.currency);
     }
+  };
+
+  // 금액 입력 포커스 시 환율 정보 숨기기
+  const handleAmountFocus = () => {
+    setIsAmountInputFocused(true);
   };
 
   const formattedAmount = formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : '';
@@ -418,26 +464,33 @@ function AddExpensePageContent() {
       
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">
         {/* 금액 */}
-        <div className="px-[20px] pt-[20px] pb-[11px] flex gap-[18px] items-center">
-          <div className="inline-flex items-center gap-[8px]">
+        <div className="px-[20px] pt-[12px] pb-[8px] flex gap-[12px] items-center">
+          <div className={`relative ${isAmountInputFocused ? 'flex-1' : 'inline-flex'}`}>
             <input
               ref={amountInputRef}
               name="amount"
               type="text"
               inputMode="numeric"
-              className="text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400 w-fit min-w-[60px]"
-              placeholder="금액"
+              className={`text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400 ${isAmountInputFocused ? 'w-full' : 'w-fit min-w-[60px]'}`}
+              placeholder={isAmountInputFocused ? "금액" : selectedCurrency ? `금액 ${selectedCurrency.currency_code}` : "금액"}
               value={formattedAmount}
               onChange={handleAmountChange}
+              onFocus={handleAmountFocus}
               onBlur={handleAmountBlur}
+              style={!isAmountInputFocused && formattedAmount && selectedCurrency ? {
+                width: `${Math.max(60, formattedAmount.length * 20 + selectedCurrency.currency_code.length * 12 + 20)}px`,
+                paddingRight: `${selectedCurrency.currency_code.length * 12 + 8}px`
+              } : !isAmountInputFocused && formattedAmount ? {
+                width: `${Math.max(60, formattedAmount.length * 20 + 20)}px`
+              } : undefined}
             />
-            {selectedCurrency && (
-              <span className="text-body-1 text-text-primary whitespace-nowrap">
+            {!isAmountInputFocused && selectedCurrency && formattedAmount && (
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 text-body-1 text-text-primary whitespace-nowrap pointer-events-none">
                 {selectedCurrency.currency_code}
               </span>
             )}
           </div>
-          {convertedAmount !== null && exchangeRate !== null && (
+          {!isAmountInputFocused && convertedAmount !== null && exchangeRate !== null && (
             <div className="flex flex-col gap-[7px] flex-1">
               <div className="text-headline-5 font-semibold text-[18px] text-text-primary">
                 {Math.round(convertedAmount).toLocaleString('ko-KR')}원
@@ -661,7 +714,7 @@ function AddExpensePageContent() {
         )}
 
         {/* 하단 버튼 */}
-        <div className="fixed bottom-0 left-0 right-0 flex gap-[8px] p-[20px] border-t border-grayscale-300 bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
+        <div className="fixed bottom-0 left-0 right-0 flex gap-[8px] p-[20px] bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
           <Link
             href="/expense"
             className="flex-1"

@@ -71,8 +71,9 @@ export default function CategorySubInputBottomSheet({
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onBack || onClose}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-6 pb-4">
+      <div className="px-[2rem] pb-[3.2rem]">
+        {/* Header */}
+        <div className="flex items-center justify-between pt-6 pb-4">
         <button
           onClick={() => {
             if (onBack) {
@@ -99,7 +100,7 @@ export default function CategorySubInputBottomSheet({
       </div>
 
       {/* Content */}
-      <div className="px-5 pb-6">
+      <div className="pb-6">
         <InputField
           label={`${majorLabel} 카테고리`}
           type="text"
@@ -113,6 +114,7 @@ export default function CategorySubInputBottomSheet({
           }}
           autoFocus
         />
+      </div>
       </div>
     </BottomSheet>
   );

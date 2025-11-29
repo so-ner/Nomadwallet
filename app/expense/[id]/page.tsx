@@ -64,6 +64,7 @@ export default function ExpenseDetailPage() {
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
   const [isCalculatingExchange, setIsCalculatingExchange] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
   
   // 카테고리 관련 상태
   const [isCategoryMajorSheetOpen, setIsCategoryMajorSheetOpen] = useState(false);
@@ -306,9 +307,15 @@ export default function ExpenseDetailPage() {
 
   // 금액 입력 포커스 아웃 시 환율 계산
   const handleAmountBlur = async () => {
+    setIsAmountInputFocused(false);
     if (formState.amount && formState.currency && formState.currency !== CurrencyCode.KRW) {
       await calculateExchangeRate(parseFloat(formState.amount), formState.currency);
     }
+  };
+
+  // 금액 입력 포커스 시 환율 정보 숨기기
+  const handleAmountFocus = () => {
+    setIsAmountInputFocused(true);
   };
 
   const formattedAmount = formState.amount ? parseInt(formState.amount).toLocaleString('ko-KR') : '';
@@ -351,6 +358,9 @@ export default function ExpenseDetailPage() {
         currency: formState.currency,
         expense_date: formState.expense_date,
         exchange_rate: finalExchangeRate,
+        ...(formState.travel_id && formState.travel_id !== 0 ? { travel_id: formState.travel_id } : {}),
+        type: formState.expenseType,
+        memo: formState.memo || null,
       };
 
       await updateExpense(expenseId, dataToSend);
@@ -393,28 +403,35 @@ export default function ExpenseDetailPage() {
         onRightClick={() => setIsDeleteModalOpen(true)}
       />
       
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32">
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col pb-32 px-[20px]">
         {/* 금액 */}
-        <div className="px-[20px] pt-[20px] pb-[11px] flex gap-[18px] items-center">
-          <div className="inline-flex items-center gap-[8px]">
+        <div className="pt-[12px] pb-[8px] flex gap-[18px] items-center">
+          <div className={`relative ${isAmountInputFocused ? 'flex-1' : 'inline-flex'}`}>
             <input
               ref={amountInputRef}
               name="amount"
               type="text"
               inputMode="numeric"
-              className="text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400 w-fit min-w-[60px]"
-              placeholder="금액"
+              className={`text-body-1 text-text-primary border-none outline-none bg-transparent placeholder:text-grayscale-400 ${isAmountInputFocused ? 'w-full' : 'w-fit min-w-[60px]'}`}
+              placeholder={isAmountInputFocused ? "금액" : selectedCurrency ? `금액 ${selectedCurrency.currency_code}` : "금액"}
               value={formattedAmount}
               onChange={handleAmountChange}
+              onFocus={handleAmountFocus}
               onBlur={handleAmountBlur}
+              style={!isAmountInputFocused && formattedAmount && selectedCurrency ? {
+                width: `${Math.max(60, formattedAmount.length * 20 + selectedCurrency.currency_code.length * 12 + 20)}px`,
+                paddingRight: `${selectedCurrency.currency_code.length * 12 + 8}px`
+              } : !isAmountInputFocused && formattedAmount ? {
+                width: `${Math.max(60, formattedAmount.length * 20 + 20)}px`
+              } : undefined}
             />
-            {selectedCurrency && (
-              <span className="text-body-1 text-text-primary whitespace-nowrap">
+            {!isAmountInputFocused && selectedCurrency && formattedAmount && (
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 text-body-1 text-text-primary whitespace-nowrap pointer-events-none">
                 {selectedCurrency.currency_code}
               </span>
             )}
           </div>
-          {convertedAmount !== null && exchangeRate !== null && (
+          {!isAmountInputFocused && convertedAmount !== null && exchangeRate !== null && (
             <div className="flex flex-col gap-[7px] flex-1">
               <div className="text-headline-5 font-semibold text-[18px] text-text-primary">
                 {Math.round(convertedAmount).toLocaleString('ko-KR')}원
@@ -427,7 +444,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 분류 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">분류</label>
           <div className="flex gap-2">
             <button
@@ -456,7 +473,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 통화 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">통화</label>
           <button
             type="button"
@@ -476,7 +493,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 예산명 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">예산명</label>
           <button
             type="button"
@@ -496,7 +513,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 카테고리 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">카테고리</label>
           <button
             ref={categoryButtonRef}
@@ -517,7 +534,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 날짜 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">날짜</label>
           <button
             ref={dateButtonRef}
@@ -538,7 +555,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 내용 */}
-        <div className="grid grid-cols-[80px_1fr] gap-4 items-center px-[20px] py-[21px]">
+        <div className="grid grid-cols-[80px_1fr] gap-4 items-center py-[21px]">
           <label className="text-headline-5 text-button-primary whitespace-nowrap">내용</label>
           <input
             name="memo"
@@ -637,7 +654,7 @@ export default function ExpenseDetailPage() {
         )}
 
         {/* 하단 버튼 */}
-        <div className="fixed bottom-0 left-0 right-0 flex gap-[8px] p-[20px] border-t border-grayscale-300 bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
+        <div className="fixed bottom-0 left-0 right-0 flex gap-[8px] p-[20px] bg-white md:left-1/2 md:right-auto md:w-[600px] md:-translate-x-1/2">
           <Link
             href="/expense"
             className="flex-1"

@@ -68,7 +68,17 @@ export async function PUT(
       .eq('user_id', user.id)
       .select('*')
       .single()
-    if (error) return NextResponse.json({error: error.message}, {status: 500})
+    if (error) {
+      console.error('Expense update error:', error);
+      // 데이터베이스 함수 오류인 경우 더 명확한 메시지 제공
+      if (error.message?.includes('process_budget_warning')) {
+        return NextResponse.json({
+          error: '데이터베이스 함수 오류: process_budget_warning 함수가 존재하지 않습니다. 데이터베이스 관리자에게 문의하세요.',
+          details: error.message
+        }, {status: 500})
+      }
+      return NextResponse.json({error: error.message}, {status: 500})
+    }
 
     if (!data || data.length === 0) {
       return NextResponse.json({error: 'Expense not found'}, {status: 404});

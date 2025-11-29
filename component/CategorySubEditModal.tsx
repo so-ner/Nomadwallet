@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { CategorySub, CategoryMajor } from '@/types/expense';
-import { getCategorySubs, deleteCategorySub } from '@/lib/api/category';
+import { getCategorySubs, deleteCategorySub, isDefaultCategorySub } from '@/lib/api/category';
 import { categoryOptions } from '@/types/expense';
 import { useConfirm } from '@/context/ConfirmContext';
 import TopAreaSub from '@/component/top_area/TopAreaSub';
@@ -136,7 +136,7 @@ export default function CategorySubEditModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-[20px] py-[16px]">
+          <div className="px-[2rem] pb-[3.2rem] pt-[16px]">
             {/* Add Button */}
             <button
               onClick={onAdd}
@@ -162,28 +162,36 @@ export default function CategorySubEditModal({
               </div>
             ) : (
               <div className="flex flex-col">
-                {subs.map((sub, index) => (
-                  <div key={sub.sub_id}>
-                    <div className="flex items-center gap-[8px] py-[16px]">
-                      <button
-                        onClick={() => handleDelete(sub)}
-                        className="w-[24px] h-[24px] rounded-full bg-red-500 flex items-center justify-center flex-shrink-0"
-                        aria-label="삭제"
-                      >
-                        <span className="text-white text-body-2">−</span>
-                      </button>
-                      <button
-                        onClick={() => onEdit(sub)}
-                        className="flex-1 text-left"
-                      >
-                        <span className="text-body-4 font-medium text-text-primary">{sub.sub_name || ''}</span>
-                      </button>
+                {subs.map((sub, index) => {
+                  const isDefault = isDefaultCategorySub(sub);
+                  return (
+                    <div key={sub.sub_id}>
+                      <div className="flex items-center gap-[8px] py-[16px]">
+                        {/* 삭제 버튼 영역은 항상 유지하되, 기본 카테고리는 보이지 않게 처리 */}
+                        <button
+                          onClick={() => !isDefault && handleDelete(sub)}
+                          className={`w-[24px] h-[24px] rounded-full bg-red-500 flex items-center justify-center flex-shrink-0 ${
+                            isDefault ? 'invisible' : ''
+                          }`}
+                          aria-label="삭제"
+                          disabled={isDefault}
+                        >
+                          <span className="text-white text-body-2">−</span>
+                        </button>
+                        {/* 기본 카테고리는 편집 불가, 유저 카테고리만 편집 가능 */}
+                        <button
+                          onClick={() => !isDefault && onEdit(sub)}
+                          className={`flex-1 text-left ${isDefault ? 'cursor-default' : ''}`}
+                          disabled={isDefault}
+                        >
+                          <span className="text-body-4 font-medium text-text-primary">{sub.sub_name || ''}</span>
+                        </button>
+                      </div>
+                      {/* 모든 항목 아래에 라인 표시 */}
+                      <div className="h-[1px] bg-grayscale-300 my-[0.8rem]" />
                     </div>
-                    {index < subs.length - 1 && (
-                      <div className="h-[1px] bg-grayscale-300" />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

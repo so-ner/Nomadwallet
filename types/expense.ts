@@ -78,6 +78,9 @@ export interface PutExpenseRequest {
   exchange_rate?: number | null;
   category: string; // ExpenseCategory
   expense_date: string; // YYYY-MM-DD
+  travel_id?: number | null;
+  type?: TransactionType;
+  memo?: string | null;
 }
 
 // =========================
