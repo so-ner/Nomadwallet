@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { getExpenses } from '@/lib/api/expense';
 import { Expense } from '@/types/expense';
 import NavigationBar from '@/component/NavigationBar';
@@ -12,6 +13,7 @@ import MonthlySummary from './MonthlySummary';
 import DayDetailBottomSheet from './DayDetailBottomSheet';
 import DateSelectBottomSheet from '@/component/BottomSheet/select/DateSelectBottomSheet';
 import { useMonthlySummary, useDayMap } from './hooks';
+import { apiFetch } from '@/lib/api/fetch';
 
 interface ExpensePageClientProps {
   initialExpenses: Expense[];
@@ -24,10 +26,12 @@ export default function ExpensePageClient({
   initialYear, 
   initialMonth 
 }: ExpensePageClientProps) {
+  const router = useRouter();
   const [cursor, setCursor] = useState<Date>(() => new Date(initialYear, initialMonth - 1, 1));
   const [openISO, setOpenISO] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [isDateSelectOpen, setIsDateSelectOpen] = useState(false);
+  const receiptFileInputRef = useRef<HTMLInputElement>(null);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -88,6 +92,49 @@ export default function ExpensePageClient({
   const selectedExpenseSum = selected ? selected.expense : 0;
   const selectedIncomeSum = selected ? selected.income : 0;
 
+  const handleReceiptScanClick = () => {
+    receiptFileInputRef.current?.click();
+  };
+
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiFetch('/api/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log('OCR 응답:', data);
+
+      // OCR 성공 시 세션 스토리지에 저장하고 지출 추가 페이지로 이동
+      if (data.success && data.data) {
+        sessionStorage.setItem('ocrData', JSON.stringify({
+          store: data.data.store,
+          total: data.data.total,
+          date: data.data.date,
+        }));
+        router.push('/expense/new');
+      } else {
+        // OCR 실패 시 에러 메시지 표시
+        alert(data.message || '영수증 인식에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('OCR 요청 실패:', error);
+      alert('영수증 인식에 실패했습니다.');
+    } finally {
+      // 파일 input 초기화
+      if (receiptFileInputRef.current) {
+        receiptFileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-[#f7f7f7] flex flex-col pb-16 mb-[10rem]">
       <TopAreaMain />
@@ -142,9 +189,7 @@ export default function ExpensePageClient({
           { 
             label: '영수증 스캔', 
             icon: '/icons/icon-scan-22.svg',
-            onClick: () => {
-              // TODO: 영수증 스캔 기능 구현
-            }
+            onClick: handleReceiptScanClick
           },
           { 
             label: '내역 추가', 
@@ -155,6 +200,15 @@ export default function ExpensePageClient({
         buttonColor="bg-[#4A6B87]"
         buttonHoverColor="hover:bg-[#3d5a73]"
         ariaLabel="add-expense"
+      />
+
+      {/* 숨겨진 파일 input */}
+      <input
+        ref={receiptFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleReceiptFileChange}
       />
 
       <NavigationBar />

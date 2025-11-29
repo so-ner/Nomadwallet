@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { CategorySub, CategoryMajor } from '@/types/expense';
-import { getCategorySubs } from '@/lib/api/category';
+import { getCategorySubs, isDefaultCategorySub } from '@/lib/api/category';
 import { categoryOptions } from '@/types/expense';
 import BottomSheet from '@/component/BottomSheet/core/BottomSheet';
 
@@ -30,6 +30,13 @@ export default function CategorySubBottomSheet({
 }: CategorySubBottomSheetProps) {
   const [subs, setSubs] = useState<CategorySub[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // 기본 카테고리와 유저 카테고리 분리
+  const { defaultSubs, userSubs } = useMemo(() => {
+    const defaultList = subs.filter(sub => isDefaultCategorySub(sub));
+    const userList = subs.filter(sub => !isDefaultCategorySub(sub));
+    return { defaultSubs: defaultList, userSubs: userList };
+  }, [subs]);
 
   useEffect(() => {
     if (isOpen) {
@@ -68,9 +75,9 @@ export default function CategorySubBottomSheet({
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 px-[2rem] pb-[3.2rem]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {onBack && (
               <button
@@ -98,18 +105,18 @@ export default function CategorySubBottomSheet({
         </div>
 
         {/* Summary */}
-        <div className="px-5">
+        <div>
           <p className="text-body-4 font-medium text-grayscale-600">
-            세부 카테고리 ({Math.max(0, 10 - subs.length)}개 추가 가능)
+            세부 카테고리 ({Math.max(0, 10 - userSubs.length)}개 추가 가능)
           </p>
         </div>
 
         {/* Divider */}
-        <div className="h-[1px] bg-grayscale-300 px-5" />
+        <div className="h-[1px] bg-grayscale-300" />
 
         {/* Subcategory List */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-[26px] px-5">
+          <div className="flex flex-col gap-2">
             {/* Subcategory Items */}
             {loading ? (
               <div className="flex items-center justify-center py-10">
@@ -120,20 +127,51 @@ export default function CategorySubBottomSheet({
                 <p className="text-body-2 text-grayscale-500">등록된 세부 카테고리가 없습니다.</p>
               </div>
             ) : (
-              subs.map((sub) => {
-                const isSelected = sub.sub_id === selectedSubId;
-                return (
-                  <button
-                    key={sub.sub_id}
-                    onClick={() => handleSelect(sub)}
-                    className={`w-full text-left hover:bg-grayscale-50 transition-colors ${
-                      isSelected ? 'bg-grayscale-50' : ''
-                    }`}
-                  >
-                    <span className="text-body-4 font-medium text-text-primary">{sub.sub_name || ''}</span>
-                  </button>
-                );
-              })
+              <>
+                {/* 기본 카테고리 먼저 표시 */}
+                {defaultSubs.map((sub, index) => {
+                  const isSelected = sub.sub_id === selectedSubId;
+                  const isLastDefault = index === defaultSubs.length - 1;
+                  const hasUserSubs = userSubs.length > 0;
+                  return (
+                    <React.Fragment key={sub.sub_id}>
+                      <button
+                        onClick={() => handleSelect(sub)}
+                        className={`w-full h-[4.6rem] flex items-center justify-center hover:bg-grayscale-50 transition-colors ${
+                          isSelected ? 'bg-grayscale-50' : ''
+                        }`}
+                      >
+                        <span className="text-body-4 font-medium text-text-primary">{sub.sub_name || ''}</span>
+                      </button>
+                      {/* 기본 카테고리 사이와 마지막 기본 카테고리 다음에 라인 추가 */}
+                      {(!isLastDefault || hasUserSubs) && (
+                        <div className="h-[1px] bg-grayscale-300" />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                {/* 유저 카테고리 그 다음 표시 */}
+                {userSubs.map((sub, index) => {
+                  const isSelected = sub.sub_id === selectedSubId;
+                  const isLastUser = index === userSubs.length - 1;
+                  return (
+                    <React.Fragment key={sub.sub_id}>
+                      <button
+                        onClick={() => handleSelect(sub)}
+                        className={`w-full h-[4.6rem] flex items-center justify-center hover:bg-grayscale-50 transition-colors ${
+                          isSelected ? 'bg-grayscale-50' : ''
+                        }`}
+                      >
+                        <span className="text-body-4 font-medium text-text-primary">{sub.sub_name || ''}</span>
+                      </button>
+                      {/* 유저 카테고리 사이에 라인 추가 (마지막 제외) */}
+                      {!isLastUser && (
+                        <div className="h-[1px] bg-grayscale-300" />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </>
             )}
           </div>
         </div>

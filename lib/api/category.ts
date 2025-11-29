@@ -1,6 +1,18 @@
 import { CategorySub, CategoryMajor, InsertCategorySub } from '@/types/expense';
 import { apiFetch } from './fetch';
 
+// 주 카테고리별 기본 세부 카테고리 정의
+const defaultCategorySubs: Record<CategoryMajor, string[]> = {
+  FOOD: ['외식', '간식', '장보기'],
+  HOUSING: ['월세', '관리비', '공과금'],
+  FIXED: ['보험', '통신비'],
+  SAVINGS_INVESTMENT: [],
+  TRANSPORTATION: ['대중교통', '택시', '유류비', '자동차 정비'],
+  LIVING_SHOPPING: ['생필품', '의류', '가전', '화장품'],
+  ENTERTAINMENT: ['영화', '여행', '책', '강의', '모임'],
+  OTHERS: ['경조사', '선물', '기타'],
+};
+
 export interface Category {
   id: string;
   name: string;
@@ -25,13 +37,32 @@ export async function getCategories(): Promise<ApiGetCategoriesResponse> {
   return { categories };
 }
 
+// 기본 카테고리인지 확인하는 헬퍼 함수
+export function isDefaultCategorySub(sub: CategorySub): boolean {
+  return sub.sub_id < 0;
+}
+
 // 소분류 카테고리 API
 export async function getCategorySubs(major: CategoryMajor): Promise<CategorySub[]> {
   const res = await apiFetch(`/api/category/sub?major=${major}`, { cache: 'no-store' });
   if (!res.ok) {
     throw new Error('소분류 카테고리 조회에 실패했습니다.');
   }
-  return res.json();
+  const userSubs = await res.json() || [];
+  
+  // 기본 세부 카테고리 생성
+  const defaultSubs = defaultCategorySubs[major] || [];
+  const defaultCategorySubsList: CategorySub[] = defaultSubs.map((subName, index) => ({
+    sub_id: -(index + 1), // 음수 ID로 기본값임을 표시
+    user_id: '',
+    major: major,
+    sub_name: subName,
+    created_at: '',
+    updated_at: '',
+  })) as CategorySub[];
+  
+  // 기본 카테고리 먼저, 그 다음 유저 카테고리 순서로 반환
+  return [...defaultCategorySubsList, ...userSubs];
 }
 
 export async function createCategorySub(data: Omit<InsertCategorySub, 'user_id' | 'created_at' | 'updated_at' | 'sub_id'>): Promise<CategorySub> {

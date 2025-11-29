@@ -27,10 +27,12 @@ export const GET = withAuth(async (user, req) => {
     }
 
     const {data, error} = await query;
-    if (error) return NextResponse.json({error}, {status: 500});
+    if (error) return NextResponse.json({error: error.message}, {status: 500});
+
+    const expenses = data || [];
 
     // 카테고리별 합산
-    const grouped = data.reduce((acc: Record<string, number>, curr) => {
+    const grouped = expenses.reduce((acc: Record<string, number>, curr) => {
       acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
       return acc;
     }, {});
@@ -42,7 +44,7 @@ export const GET = withAuth(async (user, req) => {
 
     const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
-    return NextResponse.json({categories, total}, {status: 201});
+    return NextResponse.json({categories, total}, {status: 200});
   } catch (err) {
     console.error(err);
     return NextResponse.json({error: 'Internal Server Error'}, {status: 500});

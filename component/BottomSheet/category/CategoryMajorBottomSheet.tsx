@@ -1,8 +1,25 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { CategoryMajor, categoryOptions } from '@/types/expense';
 import BottomSheet from '@/component/BottomSheet/core/BottomSheet';
+
+// 카테고리 타입을 아이콘 경로로 매핑
+const getCategoryIconPath = (categoryMajor: CategoryMajor): string => {
+  const iconMap: Record<string, string> = {
+    FOOD: '/category-icon/type=food.svg',
+    HOUSING: '/category-icon/type=house.svg',
+    FIXED: '/category-icon/type=fixed-cost.svg',
+    SAVINGS_INVESTMENT: '/category-icon/type=saving.svg',
+    TRANSPORTATION: '/category-icon/type=transportation.svg',
+    LIVING_SHOPPING: '/category-icon/type=shopping.svg',
+    ENTERTAINMENT: '/category-icon/type=cultural-life.svg',
+    OTHERS: '/category-icon/type=etc.svg',
+  };
+  
+  return iconMap[categoryMajor] || '/category-icon/type=etc.svg'; // 기본값
+};
 
 interface CategoryMajorBottomSheetProps {
   isOpen: boolean;
@@ -24,9 +41,9 @@ export default function CategoryMajorBottomSheet({
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 px-[2rem] pb-[3.2rem]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5">
+        <div className="flex items-center justify-between">
           <h2 className="text-subhead-1 text-text-primary">카테고리</h2>
           <button
             onClick={onClose}
@@ -37,9 +54,12 @@ export default function CategoryMajorBottomSheet({
           </button>
         </div>
 
+        {/* Divider */}
+        <div className="h-[1px] bg-grayscale-300" />
+
         {/* Category List */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col gap-[26px] px-5">
+          <div className="flex flex-col gap-[26px]">
             {categoryOptions.map((option) => {
               const isSelected = option.value === selectedMajor;
               return (
@@ -50,9 +70,14 @@ export default function CategoryMajorBottomSheet({
                     isSelected ? 'bg-grayscale-50' : ''
                   }`}
                 >
-                  {/* Icon Circle - 임시로 동그라미만 표시, 나중에 실제 아이콘으로 교체 */}
-                  <div className="w-10 h-10 rounded-full bg-button-primary flex items-center justify-center flex-shrink-0">
-                    {/* TODO: 실제 카테고리 아이콘으로 교체 필요 */}
+                  {/* Icon Circle */}
+                  <div className="w-[4rem] h-[4rem] rounded-full bg-button-primary flex items-center justify-center flex-shrink-0">
+                    <Image
+                      src={getCategoryIconPath(option.value)}
+                      alt={option.label}
+                      width={40}
+                      height={40}
+                    />
                   </div>
                   <span className="text-body-4 font-medium text-text-primary">{option.label}</span>
                 </button>

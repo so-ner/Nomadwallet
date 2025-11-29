@@ -43,7 +43,7 @@ const BudgetPage: React.FC = () => {
 
   return (
     <div className="relative flex flex-col min-h-[calc(100vh-80px)] md:min-h-[calc(100vh-40px)]">
-      <TopAreaMain title="NOMAD WALLET" />
+      <TopAreaMain />
       <main className="py-[35px] px-[20px] flex-1 flex flex-col gap-[16px]">
         {!hasData ? (
           <div className="flex flex-col items-center pt-40 px-4 pb-12 text-center">

@@ -30,6 +30,8 @@ export const GET = withAuth(async (user, req) => {
       .lt('expense_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
 
     if (error) return NextResponse.json({error: error.message}, {status: 500})
+    
+    const expenses = data || []
 
     // 이번 달의 첫 번째 주 계산
     const firstDayOfWeek = startOfMonth.day(); // 0(일)~6(토)
@@ -46,8 +48,9 @@ export const GET = withAuth(async (user, req) => {
     // 모든 주 생성
     let currentStart = startOfMonth;
     let weekIndex = 1;
+    const maxWeeks = 6; // 최대 6주까지만 (안전장치)
 
-    while (currentStart.isBefore(endOfMonth) || currentStart.isSame(endOfMonth, "day")) {
+    while ((currentStart.isBefore(endOfMonth) || currentStart.isSame(endOfMonth, "day")) && weekIndex <= maxWeeks) {
       const currentEnd = currentStart.add(6 - currentStart.day(), "day"); // 일요일로 맞추기
       const weekEnd = currentEnd.isAfter(endOfMonth) ? endOfMonth : currentEnd;
 
@@ -59,17 +62,24 @@ export const GET = withAuth(async (user, req) => {
         expense: 0,
       });
 
-      currentStart = weekEnd.add(1, "day"); // 다음 주 시작
+      const nextStart = weekEnd.add(1, "day"); // 다음 주 시작
+      
+      // 다음 시작일이 이번 달을 넘어가면 종료
+      if (nextStart.isAfter(endOfMonth)) {
+        break;
+      }
+      
+      currentStart = nextStart;
       weekIndex++;
     }
 
     // 데이터 합산
-    data.forEach((item) => {
+    expenses.forEach((item) => {
       const date = dayjs(item.expense_date);
       const week = weeks.find((w) => date.isBetween(w.start, w.end, "day", "[]"));
       if (!week) return;
 
-      if (item.type === "income") week.income += item.amount;
+      if (item.type === "INCOME") week.income += item.amount;
       else week.expense += item.amount;
     });
 
@@ -83,7 +93,7 @@ export const GET = withAuth(async (user, req) => {
 
     const totalExpense = formatted.reduce((sum, w) => sum + w.expense, 0);
 
-    return NextResponse.json({totalExpense, weeks: formatted}, {status: 201});
+    return NextResponse.json({totalExpense, weeks: formatted}, {status: 200});
   } catch (err) {
     console.error(err);
     return NextResponse.json({error: 'Internal Server Error'}, {status: 500});
